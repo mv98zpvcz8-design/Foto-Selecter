@@ -7,7 +7,7 @@ import { formatReasoning, formatSuggestionNote } from '../i18n/format';
 import { PhotoDetailView } from './PhotoDetailView';
 import { SeriesCompareView } from './SeriesCompareView';
 
-export function PhotoCard({ photo }: { photo: PhotoResult }) {
+export function PhotoCard({ photo, allPhotos, index }: { photo: PhotoResult; allPhotos: PhotoResult[]; index: number }) {
   const { state, dispatch } = useAppState();
   const t = useT();
   const [showDetail, setShowDetail] = useState(false);
@@ -57,7 +57,8 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
             alt={photo.name}
             loading="lazy"
             className="photo-thumb-img"
-            onClick={() => setShowDetail(true)}
+            title={t('photo.expandDetail')}
+            onDoubleClick={() => setShowDetail(true)}
           />
         )}
         {photo.overallScore != null && (
@@ -110,13 +111,13 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
               ))}
             </ul>
             <button type="button" className="expand-detail-btn" onClick={() => setShowDetail(true)}>
-              ⤢ {t('photo.expandDetail')}
+              {t('photo.expandDetail')}
             </button>
           </div>
         )}
       </div>
 
-      {showDetail && <PhotoDetailView photo={photo} onClose={() => setShowDetail(false)} />}
+      {showDetail && <PhotoDetailView photos={allPhotos} initialIndex={index} onClose={() => setShowDetail(false)} />}
       {showSeries && (
         <SeriesCompareView
           groupPhotos={state.photos.filter((p) => p.status === 'done' && p.groupId === photo.groupId)}

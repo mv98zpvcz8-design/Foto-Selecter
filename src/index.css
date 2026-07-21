@@ -846,18 +846,60 @@ input, select {
   background: rgba(28, 28, 30, 0.95);
 }
 .detail-image {
+  position: relative;
   flex: 1.1;
   min-width: 0;
   background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none;
 }
 .detail-image img {
   width: 100%;
   height: 100%;
   max-height: 90vh;
   object-fit: contain;
+  user-select: none;
+}
+.detail-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(28, 28, 30, 0.6);
+  backdrop-filter: var(--material);
+  color: var(--label);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+.detail-nav:hover {
+  background: rgba(28, 28, 30, 0.9);
+}
+.detail-nav-prev {
+  left: 12px;
+}
+.detail-nav-next {
+  right: 12px;
+}
+.detail-position {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(28, 28, 30, 0.78);
+  backdrop-filter: var(--material);
+  color: var(--label-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
 }
 .detail-body {
   flex: 1;
@@ -944,21 +986,21 @@ input, select {
 }
 
 .expand-detail-btn {
-  margin-top: 12px;
+  margin-top: 14px;
   width: 100%;
-  padding: 8px;
+  padding: 14px;
   background: var(--fill);
   border: none;
-  border-radius: 8px;
-  color: var(--label-secondary);
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 10px;
+  color: var(--label);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 .expand-detail-btn:hover {
   background: var(--fill-secondary);
-  color: var(--label);
+  color: var(--accent);
 }
 
 /* --- instagram carousel --- */

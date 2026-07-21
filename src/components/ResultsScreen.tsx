@@ -84,8 +84,8 @@ export function ResultsScreen() {
         <div className="empty-state">{t('results.empty')}</div>
       ) : (
         <div className="photo-grid">
-          {sortedVisible.map((p) => (
-            <PhotoCard key={p.id} photo={p} />
+          {sortedVisible.map((p, i) => (
+            <PhotoCard key={p.id} photo={p} allPhotos={sortedVisible} index={i} />
           ))}
         </div>
       )}
@@ -94,8 +94,8 @@ export function ResultsScreen() {
         <>
           <div className="section-heading">{t('results.errorSection', { count: errorPhotos.length })}</div>
           <div className="photo-grid">
-            {errorPhotos.map((p) => (
-              <PhotoCard key={p.id} photo={p} />
+            {errorPhotos.map((p, i) => (
+              <PhotoCard key={p.id} photo={p} allPhotos={errorPhotos} index={i} />
             ))}
           </div>
         </>

@@ -79,7 +79,9 @@ const de: Record<string, string> = {
   'photo.eyesClosedBadge': '⚠ Augen geschlossen',
   'photo.scoreHint': 'Score anklicken für Aufschlüsselung',
   'photo.whyThisPhoto': 'Warum dieses Foto?',
-  'photo.expandDetail': 'Foto & Details groß anzeigen',
+  'photo.expandDetail': 'Foto groß anzeigen',
+  'detail.prev': 'Vorheriges Foto',
+  'detail.next': 'Nächstes Foto',
 
   'breakdown.title': 'Score-Aufschlüsselung',
   'breakdown.sharpness': 'Schärfe',
@@ -219,7 +221,9 @@ const en: Record<string, string> = {
   'photo.eyesClosedBadge': '⚠ Eyes closed',
   'photo.scoreHint': 'Click score for breakdown',
   'photo.whyThisPhoto': 'Why this photo?',
-  'photo.expandDetail': 'View photo & details in full',
+  'photo.expandDetail': 'View photo large',
+  'detail.prev': 'Previous photo',
+  'detail.next': 'Next photo',
 
   'breakdown.title': 'Score breakdown',
   'breakdown.sharpness': 'Sharpness',
