@@ -3,6 +3,11 @@ export type Lang = 'de' | 'en';
 type Vars = Record<string, string | number>;
 
 const de: Record<string, string> = {
+  'restore.title': 'Vorherigen Stand wiederherstellen?',
+  'restore.message': '{{count}} Foto(s) von deiner letzten Sitzung gefunden (gespeichert am {{when}}). Möchtest du fortsetzen?',
+  'restore.confirm': 'Wiederherstellen',
+  'restore.discard': 'Verwerfen',
+
   'header.stepUpload': '1. Upload',
   'header.stepConfig': '2. Einstellungen',
   'header.stepProcessing': '3. Analyse',
@@ -159,6 +164,11 @@ const de: Record<string, string> = {
 };
 
 const en: Record<string, string> = {
+  'restore.title': 'Restore your last session?',
+  'restore.message': '{{count}} photo(s) found from your last session (saved {{when}}). Continue where you left off?',
+  'restore.confirm': 'Restore',
+  'restore.discard': 'Discard',
+
   'header.stepUpload': '1. Upload',
   'header.stepConfig': '2. Settings',
   'header.stepProcessing': '3. Analysis',

@@ -4,6 +4,7 @@ import type { Lang } from '../i18n/translations';
 import { isSupportedFile } from '../lib/fileTypes';
 import { createInitialPhotoResults } from '../lib/pipeline';
 import { DEFAULT_PROFILE_REF } from '../lib/profiles';
+import { clearSession, saveSession } from '../lib/persistence';
 
 const LANG_STORAGE_KEY = 'foto-selecter-lang';
 const PRESETS_STORAGE_KEY = 'foto-selecter-presets';
@@ -62,6 +63,13 @@ type Action =
   | { type: 'SET_SHOW_ALL'; showAll: boolean }
   | { type: 'REORDER_CAROUSEL'; orderedIds: string[] }
   | { type: 'SET_LANG'; lang: Lang }
+  | {
+      type: 'RESTORE_SESSION';
+      files: File[];
+      targetCount: number;
+      profileRef: ProfileRef;
+      selectionMode: SelectionMode;
+    }
   | { type: 'RESET' };
 
 function createInitialState(): AppState {
@@ -160,6 +168,16 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_LANG':
       return { ...state, lang: action.lang };
+    case 'RESTORE_SESSION':
+      return {
+        ...state,
+        photos: createInitialPhotoResults(action.files),
+        rejectedFileNames: [],
+        targetCount: action.targetCount,
+        profileRef: action.profileRef,
+        selectionMode: action.selectionMode,
+        step: 'config',
+      };
     case 'RESET': {
       for (const photo of state.photos) {
         if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
@@ -196,6 +214,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       // localStorage unavailable — custom presets just won't persist
     }
   }, [state.customPresets]);
+
+  // Debounced auto-save: protects against an accidental reload or tab
+  // crash losing the file selection. Only the raw files + config are
+  // snapshotted (see persistence.ts for why computed analysis isn't).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (state.photos.length === 0) {
+        clearSession();
+      } else {
+        saveSession({
+          files: state.photos.map((p) => p.file),
+          targetCount: state.targetCount,
+          profileRef: state.profileRef,
+          selectionMode: state.selectionMode,
+          savedAt: Date.now(),
+        });
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [state.photos, state.targetCount, state.profileRef, state.selectionMode]);
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
 }

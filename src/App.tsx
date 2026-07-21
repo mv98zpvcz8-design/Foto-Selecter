@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppStateProvider, useAppState } from './state/AppState';
 import { useT } from './i18n/useT';
 import type { Lang } from './i18n/translations';
@@ -6,8 +6,10 @@ import { UploadScreen } from './components/UploadScreen';
 import { ConfigScreen } from './components/ConfigScreen';
 import { ProcessingScreen } from './components/ProcessingScreen';
 import { ResultsScreen } from './components/ResultsScreen';
+import { RestoreSessionDialog } from './components/RestoreSessionDialog';
 import { runPipeline, type CancelToken } from './lib/pipeline';
 import { resolveStyleHint, resolveWeights } from './lib/profiles';
+import { clearSession, loadSession, type SessionSnapshot } from './lib/persistence';
 import type { AppStep, SelectionConfig } from './types';
 
 const STEP_ORDER: AppStep[] = ['upload', 'config', 'processing', 'results'];
@@ -58,8 +60,34 @@ function AppContent() {
   const t = useT();
   const startedRef = useRef(false);
   const cancelTokenRef = useRef<CancelToken>({ cancelled: false });
+  const [restoreSnapshot, setRestoreSnapshot] = useState<SessionSnapshot | null>(null);
 
   useWindowDropGuard();
+
+  useEffect(() => {
+    if (state.photos.length > 0) return; // already mid-session, e.g. hot reload in dev
+    loadSession().then((snapshot) => {
+      if (snapshot && snapshot.files.length > 0) setRestoreSnapshot(snapshot);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleRestore() {
+    if (!restoreSnapshot) return;
+    dispatch({
+      type: 'RESTORE_SESSION',
+      files: restoreSnapshot.files,
+      targetCount: restoreSnapshot.targetCount,
+      profileRef: restoreSnapshot.profileRef,
+      selectionMode: restoreSnapshot.selectionMode,
+    });
+    setRestoreSnapshot(null);
+  }
+
+  function handleDiscardRestore() {
+    clearSession();
+    setRestoreSnapshot(null);
+  }
 
   useEffect(() => {
     if (state.step !== 'processing') {
@@ -140,6 +168,10 @@ function AppContent() {
       {state.step === 'config' && <ConfigScreen />}
       {state.step === 'processing' && <ProcessingScreen onCancel={handleCancelProcessing} />}
       {state.step === 'results' && <ResultsScreen />}
+
+      {restoreSnapshot && (
+        <RestoreSessionDialog snapshot={restoreSnapshot} onRestore={handleRestore} onDiscard={handleDiscardRestore} />
+      )}
     </div>
   );
 }
