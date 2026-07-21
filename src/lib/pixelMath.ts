@@ -128,7 +128,16 @@ export interface ColorStats {
   avgR: number;
   avgG: number;
   avgB: number;
-  saturationMean: number; // 0-1, mean HSV saturation across all pixels
+  /**
+   * Mean absolute channel spread per pixel — avg(max(r,g,b) - min(r,g,b)),
+   * 0-255 scale. Deliberately NOT a relative HSV-style saturation
+   * ((max-min)/max): that ratio blows up on dark pixels, where a couple of
+   * units of JPEG compression noise near black (e.g. R=5, G=3) produce a
+   * ratio of 0.4 — which would make ordinary shadow noise in a real black
+   * & white photo look "saturated". An absolute difference stays small
+   * for true grayscale content regardless of how dark the pixel is.
+   */
+  channelDiffMean: number;
   contrast: number; // stdev of luminance (0-255 scale)
 }
 
@@ -140,12 +149,12 @@ export interface ColorStats {
  */
 export function colorStats(data: Uint8ClampedArray | Uint8Array, gray: Float32Array): ColorStats {
   const n = gray.length;
-  if (n === 0) return { avgR: 0, avgG: 0, avgB: 0, saturationMean: 0, contrast: 0 };
+  if (n === 0) return { avgR: 0, avgG: 0, avgB: 0, channelDiffMean: 0, contrast: 0 };
 
   let sumR = 0;
   let sumG = 0;
   let sumB = 0;
-  let sumSat = 0;
+  let sumDiff = 0;
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
@@ -155,7 +164,7 @@ export function colorStats(data: Uint8ClampedArray | Uint8Array, gray: Float32Ar
     sumB += b;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    sumSat += max === 0 ? 0 : (max - min) / max;
+    sumDiff += max - min;
   }
 
   let meanLum = 0;
@@ -172,7 +181,7 @@ export function colorStats(data: Uint8ClampedArray | Uint8Array, gray: Float32Ar
     avgR: sumR / n,
     avgG: sumG / n,
     avgB: sumB / n,
-    saturationMean: sumSat / n,
+    channelDiffMean: sumDiff / n,
     contrast: Math.sqrt(varSum / n),
   };
 }

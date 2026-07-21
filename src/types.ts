@@ -99,7 +99,7 @@ export interface PhotoResult {
   isFavorite?: boolean; // user-controlled bookmark, independent of purpose/selection
 
   orientation?: 'portrait' | 'landscape' | 'square';
-  colorStats?: { avgR: number; avgG: number; avgB: number; saturationMean: number; contrast: number };
+  colorStats?: { avgR: number; avgG: number; avgB: number; channelDiffMean: number; contrast: number };
   emotionScores?: Partial<Record<EmotionKey, number>>; // face-api expression output, averaged across detected faces
   semanticTags?: SemanticTag[]; // derived filter-matchable tags with confidence, see lib/semanticTags.ts
 }

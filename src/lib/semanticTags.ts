@@ -6,8 +6,8 @@ import type { PhotoResult, SemanticTag, SemanticTagKey } from '../types';
 // model. Confidences ramp linearly between a "just crossing" and a
 // "clearly true" boundary; they express how far a measurement sits from
 // the threshold, not a statistically calibrated probability.
-const BW_SATURATION_THRESHOLD = 0.06;
-const VIVID_SATURATION_THRESHOLD = 0.32;
+const BW_CHANNEL_DIFF_THRESHOLD = 14; // 0-255 scale; see ColorStats.channelDiffMean
+const VIVID_CHANNEL_DIFF_THRESHOLD = 55;
 const WARM_COOL_DIFF_THRESHOLD = 5; // avg red minus avg blue, 0-255 scale
 const HIGH_CONTRAST_THRESHOLD = 60; // stdev of luminance
 const LOW_CONTRAST_THRESHOLD = 28;
@@ -48,13 +48,13 @@ export function deriveSemanticTags(photo: PhotoResult): SemanticTag[] {
   // --- color & style ---
   const colors = photo.colorStats;
   if (colors) {
-    const isBw = colors.saturationMean < BW_SATURATION_THRESHOLD;
+    const isBw = colors.channelDiffMean < BW_CHANNEL_DIFF_THRESHOLD;
     if (isBw) {
-      tags.push(tag('bw', ramp(BW_SATURATION_THRESHOLD - colors.saturationMean, 0, BW_SATURATION_THRESHOLD)));
+      tags.push(tag('bw', ramp(BW_CHANNEL_DIFF_THRESHOLD - colors.channelDiffMean, 0, BW_CHANNEL_DIFF_THRESHOLD)));
     } else {
-      tags.push(tag('color', ramp(colors.saturationMean - BW_SATURATION_THRESHOLD, 0, 0.15)));
-      if (colors.saturationMean >= VIVID_SATURATION_THRESHOLD) {
-        tags.push(tag('vividColor', ramp(colors.saturationMean, VIVID_SATURATION_THRESHOLD, VIVID_SATURATION_THRESHOLD + 0.2)));
+      tags.push(tag('color', ramp(colors.channelDiffMean - BW_CHANNEL_DIFF_THRESHOLD, 0, 20)));
+      if (colors.channelDiffMean >= VIVID_CHANNEL_DIFF_THRESHOLD) {
+        tags.push(tag('vividColor', ramp(colors.channelDiffMean, VIVID_CHANNEL_DIFF_THRESHOLD, VIVID_CHANNEL_DIFF_THRESHOLD + 60)));
       }
       const rbDiff = colors.avgR - colors.avgB;
       if (Math.abs(rbDiff) >= WARM_COOL_DIFF_THRESHOLD) {
