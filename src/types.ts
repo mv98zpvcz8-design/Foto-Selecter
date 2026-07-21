@@ -59,6 +59,8 @@ export interface PhotoResult {
   isSelected?: boolean; // user-controlled, defaults to isPreselected
 
   lightroomSuggestions?: LightroomSuggestion[];
+
+  carouselPosition?: number; // 1-based; only set when the active style is Instagram
 }
 
 export type SuggestionKind =

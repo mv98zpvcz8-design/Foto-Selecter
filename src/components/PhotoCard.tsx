@@ -4,12 +4,12 @@ import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { classifyReasoning } from '../lib/reasoning';
 import { formatReasoning, formatSuggestionNote } from '../i18n/format';
-import { ScoreBreakdown } from './ScoreBreakdown';
+import { PhotoDetailView } from './PhotoDetailView';
 
 export function PhotoCard({ photo }: { photo: PhotoResult }) {
   const { dispatch } = useAppState();
   const t = useT();
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
 
   if (photo.status === 'error') {
     return (
@@ -49,13 +49,21 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
           onChange={() => dispatch({ type: 'TOGGLE_SELECTED', id: photo.id })}
           aria-label={t('photo.selectAria', { name: photo.name })}
         />
-        {photo.previewUrl && <img src={photo.previewUrl} alt={photo.name} loading="lazy" />}
+        {photo.previewUrl && (
+          <img
+            src={photo.previewUrl}
+            alt={photo.name}
+            loading="lazy"
+            className="photo-thumb-img"
+            onClick={() => setShowDetail(true)}
+          />
+        )}
         {photo.overallScore != null && (
           <button
             type="button"
             className="score-badge"
             title={t('photo.scoreHint')}
-            onClick={() => setShowBreakdown(true)}
+            onClick={() => setShowDetail(true)}
           >
             {photo.overallScore}
           </button>
@@ -78,7 +86,7 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
             className="info-icon-btn"
             title={reasoningText}
             aria-label={t('photo.whyThisPhoto')}
-            onClick={() => setShowBreakdown(true)}
+            onClick={() => setShowDetail(true)}
           >
             ⓘ
           </button>
@@ -94,11 +102,14 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
                 </li>
               ))}
             </ul>
+            <button type="button" className="expand-detail-btn" onClick={() => setShowDetail(true)}>
+              ⤢ {t('photo.expandDetail')}
+            </button>
           </div>
         )}
       </div>
 
-      {showBreakdown && <ScoreBreakdown photo={photo} onClose={() => setShowBreakdown(false)} />}
+      {showDetail && <PhotoDetailView photo={photo} onClose={() => setShowDetail(false)} />}
     </div>
   );
 }

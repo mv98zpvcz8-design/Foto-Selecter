@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { PhotoCard } from './PhotoCard';
+import { CarouselSection } from './CarouselSection';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
-import { resolveCustomPreset } from '../lib/profiles';
+import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 
 export function ResultsScreen() {
   const { state, dispatch } = useAppState();
@@ -19,6 +20,12 @@ export function ResultsScreen() {
   const errorPhotos = useMemo(() => photos.filter((p) => p.status === 'error'), [photos]);
   const preselected = useMemo(() => donePhotos.filter((p) => p.isPreselected), [donePhotos]);
   const selectedCount = useMemo(() => photos.filter((p) => p.isSelected).length, [photos]);
+
+  const isInstagram = resolveStyleHint(state.profileRef, state.customPresets) === 'instagram';
+  const carouselPhotos = useMemo(
+    () => preselected.filter((p) => p.carouselPosition != null),
+    [preselected],
+  );
 
   const visiblePhotos = showAll ? donePhotos : preselected;
   const sortedVisible = useMemo(
@@ -70,6 +77,8 @@ export function ResultsScreen() {
           </button>
         </div>
       </div>
+
+      {isInstagram && carouselPhotos.length > 0 && <CarouselSection photos={carouselPhotos} />}
 
       {sortedVisible.length === 0 ? (
         <div className="empty-state">{t('results.empty')}</div>

@@ -23,14 +23,21 @@ function download(filename: string, content: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Carousel position first (when set, e.g. Instagram), otherwise leaves relative order untouched. */
+function orderForExport(photos: PhotoResult[]): PhotoResult[] {
+  const hasCarouselOrder = photos.some((p) => p.carouselPosition != null);
+  if (!hasCarouselOrder) return photos;
+  return [...photos].sort((a, b) => (a.carouselPosition ?? Infinity) - (b.carouselPosition ?? Infinity));
+}
+
 export function exportAsTxt(photos: PhotoResult[]) {
-  const selected = photos.filter((p) => p.isSelected);
+  const selected = orderForExport(photos.filter((p) => p.isSelected));
   const content = selected.map((p) => p.name).join('\n');
   download('opticsbydom-auswahl.txt', content, 'text/plain;charset=utf-8');
 }
 
 export function exportAsCsv(photos: PhotoResult[], t: T) {
-  const selected = photos.filter((p) => p.isSelected);
+  const selected = orderForExport(photos.filter((p) => p.isSelected));
   const header = t('export.header');
   const rows = selected.map((p) => {
     const reasoning = formatReasoning(classifyReasoning(p), t);
@@ -43,6 +50,7 @@ export function exportAsCsv(photos: PhotoResult[], t: T) {
       csvEscape(reasoning),
       p.isPreselected ? t('export.yes') : t('export.no'),
       csvEscape(suggestions),
+      p.carouselPosition ?? '',
     ].join(',');
   });
   const content = [header, ...rows].join('\n');

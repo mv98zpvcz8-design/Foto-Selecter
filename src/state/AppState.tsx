@@ -57,6 +57,7 @@ type Action =
   | { type: 'SET_RESULTS'; photos: PhotoResult[] }
   | { type: 'TOGGLE_SELECTED'; id: string }
   | { type: 'SET_SHOW_ALL'; showAll: boolean }
+  | { type: 'REORDER_CAROUSEL'; orderedIds: string[] }
   | { type: 'SET_LANG'; lang: Lang }
   | { type: 'RESET' };
 
@@ -133,6 +134,15 @@ function reducer(state: AppState, action: Action): AppState {
       };
     case 'SET_SHOW_ALL':
       return { ...state, showAll: action.showAll };
+    case 'REORDER_CAROUSEL': {
+      const positionById = new Map(action.orderedIds.map((id, i) => [id, i + 1]));
+      return {
+        ...state,
+        photos: state.photos.map((p) =>
+          positionById.has(p.id) ? { ...p, carouselPosition: positionById.get(p.id) } : p,
+        ),
+      };
+    }
     case 'SET_LANG':
       return { ...state, lang: action.lang };
     case 'RESET': {

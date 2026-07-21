@@ -48,6 +48,8 @@ const de: Record<string, string> = {
   'results.newRun': 'Neuer Durchlauf',
   'results.empty': 'Keine Fotos in dieser Ansicht.',
   'results.errorSection': 'Nicht auswertbare Dateien ({{count}})',
+  'results.carouselHeading': 'Instagram-Carousel-Reihenfolge',
+  'results.carouselHint': 'Ziehen zum Umsortieren. Cover-Bild zuerst, danach eine ausgewogene Mischung aus Ausrichtung und Aufnahme-Chronologie.',
 
   'photo.previewFailed': 'Vorschau fehlgeschlagen',
   'photo.excludedNote': 'Wurde nicht in die Bewertung einbezogen.',
@@ -71,6 +73,7 @@ const de: Record<string, string> = {
   'photo.eyesClosedBadge': '⚠ Augen geschlossen',
   'photo.scoreHint': 'Score anklicken für Aufschlüsselung',
   'photo.whyThisPhoto': 'Warum dieses Foto?',
+  'photo.expandDetail': 'Foto & Details groß anzeigen',
 
   'breakdown.title': 'Score-Aufschlüsselung',
   'breakdown.sharpness': 'Schärfe',
@@ -123,7 +126,7 @@ const de: Record<string, string> = {
   'lr.kundeToneCurve': 'Sanfter Grundkontrast für ein poliertes, aber unaufdringliches Ergebnis.',
   'lr.defaultToneCurve': 'Grundkontrast verfeinern für mehr Bildwirkung.',
 
-  'export.header': 'Dateiname,Score,Begründung,Vorausgewählt,Lightroom-Empfehlungen',
+  'export.header': 'Dateiname,Score,Begründung,Vorausgewählt,Lightroom-Empfehlungen,Carousel-Position',
   'export.yes': 'ja',
   'export.no': 'nein',
 
@@ -179,6 +182,8 @@ const en: Record<string, string> = {
   'results.newRun': 'New run',
   'results.empty': 'No photos in this view.',
   'results.errorSection': "Files that couldn't be evaluated ({{count}})",
+  'results.carouselHeading': 'Instagram carousel order',
+  'results.carouselHint': 'Drag to reorder. Cover image first, then a balanced mix of orientation and capture chronology.',
 
   'photo.previewFailed': 'Preview failed',
   'photo.excludedNote': 'Was not included in the evaluation.',
@@ -202,6 +207,7 @@ const en: Record<string, string> = {
   'photo.eyesClosedBadge': '⚠ Eyes closed',
   'photo.scoreHint': 'Click score for breakdown',
   'photo.whyThisPhoto': 'Why this photo?',
+  'photo.expandDetail': 'View photo & details in full',
 
   'breakdown.title': 'Score breakdown',
   'breakdown.sharpness': 'Sharpness',
@@ -253,7 +259,7 @@ const en: Record<string, string> = {
   'lr.kundeToneCurve': 'Gentle base contrast for a polished but understated result.',
   'lr.defaultToneCurve': 'Refine base contrast for more visual impact.',
 
-  'export.header': 'Filename,Score,Reasoning,Preselected,Lightroom Recommendations',
+  'export.header': 'Filename,Score,Reasoning,Preselected,Lightroom Recommendations,Carousel Position',
   'export.yes': 'yes',
   'export.no': 'no',
 

@@ -5,6 +5,7 @@ import { computeDHash } from './perceptualHash';
 import { analyzeFacesSafe } from './faceAnalysis';
 import { scorePhotos, selectTopN } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
+import { assignCarouselPositions } from './carousel';
 import {
   ERR_CANVAS_UNAVAILABLE,
   ERR_IMAGE_LOAD,
@@ -110,6 +111,12 @@ export async function runPipeline(
     if (photo.isPreselected) {
       photo.lightroomSuggestions = generateLightroomSuggestions(photo, styleHint);
     }
+  }
+
+  if (styleHint === 'instagram') {
+    assignCarouselPositions(photos);
+  } else {
+    for (const photo of photos) photo.carouselPosition = undefined;
   }
 
   return photos;
