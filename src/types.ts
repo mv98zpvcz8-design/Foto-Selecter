@@ -2,6 +2,22 @@ export type Purpose = 'instagram' | 'kunde' | 'portfolio' | 'sonstiges';
 
 export const PURPOSE_VALUES: Purpose[] = ['instagram', 'kunde', 'portfolio', 'sonstiges'];
 
+export interface WeightProfile {
+  sharpness: number;
+  exposure: number;
+  group: number;
+  faces: number;
+}
+
+export interface CustomPreset {
+  id: string;
+  name: string;
+  weights: WeightProfile;
+  styleHint: Purpose; // which built-in flavor to borrow Lightroom finishing touches from
+}
+
+export type ProfileRef = { kind: 'builtin'; purpose: Purpose } | { kind: 'custom'; presetId: string };
+
 export type PhotoStatus = 'pending' | 'processing' | 'done' | 'error';
 
 export interface PhotoResult {
@@ -25,13 +41,19 @@ export interface PhotoResult {
   highlightClipping?: number; // fraction 0-1
   meanLuminance?: number; // 0-255
 
+  facesDetected?: number;
+  facesWithClosedEyes?: number;
+  faceScore?: number; // 0-100; neutral 100 when no faces detected
+
   hash?: bigint;
 
   groupId?: number;
   groupRank?: number; // 1 = best in its group
   groupSize?: number;
+  groupBonusScore?: number; // 0-100, pre-weighting
 
   overallScore?: number; // 0-100
+  appliedWeights?: WeightProfile; // the weights actually used to compute overallScore
 
   isPreselected?: boolean;
   isSelected?: boolean; // user-controlled, defaults to isPreselected

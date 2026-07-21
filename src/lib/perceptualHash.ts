@@ -1,13 +1,17 @@
 import { ERR_CANVAS_UNAVAILABLE, ERR_IMAGE_LOAD } from './errorCodes';
 
-const HASH_WIDTH = 9;
-const HASH_HEIGHT = 8;
+export const HASH_BITS = 256;
+const HASH_HEIGHT = 16;
+const HASH_WIDTH = HASH_BITS / HASH_HEIGHT + 1; // 17 columns -> 16 horizontal comparisons/row
 
 /**
- * Computes a 64-bit difference hash (dHash) of an image. Two images of a
+ * Computes a 256-bit difference hash (dHash) of an image. Two images of a
  * near-identical burst will produce hashes with a small Hamming distance,
  * which lets us cluster "same shot, multiple frames" without ever
- * comparing full-resolution pixel data.
+ * comparing full-resolution pixel data. A 16x16 grid (rather than the more
+ * common 8x8/64-bit dHash) gives enough resolution to tell apart distinct
+ * moments within a fast sports/event burst instead of lumping the whole
+ * sequence into one group.
  */
 export function computeDHash(url: string): Promise<bigint> {
   return new Promise((resolve, reject) => {

@@ -1,8 +1,19 @@
-import { hammingDistance } from './perceptualHash';
+import { hammingDistance, HASH_BITS } from './perceptualHash';
 
-const HASH_THRESHOLD = 10; // out of 64 bits; lower = stricter match
-const TIME_WINDOW_SECONDS = 6; // burst frames are expected within this gap
-const LOOKAHEAD = 6; // compare each photo to the next N in time order
+// Two-tier time/similarity thresholds: continuous-shooting bursts (sports,
+// events) fire frames a fraction of a second apart, during which the
+// subject can move a lot between frames — so we allow a looser hash match
+// there. Shots seconds apart need a much tighter match, otherwise distinct
+// moments that just happen to be shot close together in a longer session
+// get lumped into one "series" incorrectly.
+const RAPID_BURST_SECONDS = 1.2;
+const RAPID_THRESHOLD_FRACTION = 0.22;
+const NORMAL_THRESHOLD_FRACTION = 0.1;
+const TIME_WINDOW_SECONDS = 6; // photos further apart than this are never grouped
+const LOOKAHEAD = 8; // compare each photo to the next N in time order
+
+const RAPID_THRESHOLD = Math.round(HASH_BITS * RAPID_THRESHOLD_FRACTION);
+const NORMAL_THRESHOLD = Math.round(HASH_BITS * NORMAL_THRESHOLD_FRACTION);
 
 export interface GroupablePhoto {
   hash?: bigint;
@@ -26,6 +37,12 @@ class UnionFind {
     const rb = this.find(b);
     if (ra !== rb) this.parent[ra] = rb;
   }
+}
+
+/** Looser threshold for true continuous-shooting bursts (subject moves, same setup), tighter otherwise. */
+function thresholdFor(deltaSeconds: number | null): number {
+  if (deltaSeconds != null && deltaSeconds <= RAPID_BURST_SECONDS) return RAPID_THRESHOLD;
+  return NORMAL_THRESHOLD;
 }
 
 /**
@@ -59,12 +76,13 @@ export function groupPhotos(photos: GroupablePhoto[]): { groupId: number[]; grou
       const photoJ = photos[j];
       if (photoJ.hash == null) continue;
 
+      let deltaSeconds: number | null = null;
       if (photoI.captureTime && photoJ.captureTime) {
-        const deltaSeconds = Math.abs(photoJ.captureTime.getTime() - photoI.captureTime.getTime()) / 1000;
+        deltaSeconds = Math.abs(photoJ.captureTime.getTime() - photoI.captureTime.getTime()) / 1000;
         if (deltaSeconds > TIME_WINDOW_SECONDS) break; // sorted by time, later ones only farther away
       }
 
-      if (hammingDistance(photoI.hash, photoJ.hash) <= HASH_THRESHOLD) {
+      if (hammingDistance(photoI.hash, photoJ.hash) <= thresholdFor(deltaSeconds)) {
         uf.union(i, j);
       }
     }

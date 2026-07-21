@@ -2,6 +2,7 @@ import { extractPreview } from './rawPreview';
 import { extractExifMeta } from './exifMeta';
 import { analyzeImage } from './imageAnalysis';
 import { computeDHash } from './perceptualHash';
+import { analyzeFacesSafe } from './faceAnalysis';
 import { scorePhotos, selectTopN } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
 import {
@@ -11,7 +12,7 @@ import {
   ERR_PREVIEW_LOAD,
   type PipelineErrorCode,
 } from './errorCodes';
-import type { PhotoResult, Purpose } from '../types';
+import type { PhotoResult, Purpose, WeightProfile } from '../types';
 
 const ERROR_KEY_BY_CODE: Record<PipelineErrorCode, string> = {
   [ERR_NO_PREVIEW]: 'error.noPreview',
@@ -38,19 +39,21 @@ export function createInitialPhotoResults(files: File[]): PhotoResult[] {
 }
 
 /**
- * Runs the per-photo pipeline (preview extraction, blur/exposure
+ * Runs the per-photo pipeline (preview extraction, blur/exposure/face
  * analysis, perceptual hash) sequentially so the UI thread stays
  * responsive and progress can be reported, then scores and pre-selects
- * the whole batch. Photos already marked 'done' or 'error' are skipped,
- * so re-running after the user goes back to change purpose/target count
- * only redoes the cheap scoring step, not the expensive extraction.
- * Checks `cancelToken.cancelled` between photos so a user-triggered
- * cancel (going back mid-analysis) stops further work promptly; already
+ * the whole batch using the given (already-resolved) weight profile.
+ * Photos already marked 'done' or 'error' are skipped, so re-running
+ * after the user goes back to change purpose/target count only redoes
+ * the cheap scoring step, not the expensive extraction. Checks
+ * `cancelToken.cancelled` between photos so a user-triggered cancel
+ * (going back mid-analysis) stops further work promptly; already
  * in-flight work for the current photo is not aborted, just not scored.
  */
 export async function runPipeline(
   photos: PhotoResult[],
-  purpose: Purpose,
+  weights: WeightProfile,
+  styleHint: Purpose,
   targetCount: number,
   onProgress: (done: number, total: number) => void,
   cancelToken: CancelToken = { cancelled: false },
@@ -71,10 +74,11 @@ export async function runPipeline(
       photo.previewWidth = preview.width;
       photo.previewHeight = preview.height;
 
-      const [meta, analysis, hash] = await Promise.all([
+      const [meta, analysis, hash, faces] = await Promise.all([
         extractExifMeta(photo.file),
         analyzeImage(preview.url),
         computeDHash(preview.url),
+        analyzeFacesSafe(preview.url),
       ]);
 
       photo.captureTime = meta.captureTime;
@@ -84,6 +88,8 @@ export async function runPipeline(
       photo.highlightClipping = analysis.highlightClipping;
       photo.meanLuminance = analysis.meanLuminance;
       photo.hash = hash;
+      photo.facesDetected = faces.facesDetected;
+      photo.facesWithClosedEyes = faces.facesWithClosedEyes;
       photo.status = 'done';
     } catch (err) {
       photo.status = 'error';
@@ -97,12 +103,12 @@ export async function runPipeline(
 
   if (cancelToken.cancelled) return photos;
 
-  scorePhotos(photos, purpose);
+  scorePhotos(photos, weights);
   selectTopN(photos, targetCount);
 
   for (const photo of photos) {
     if (photo.isPreselected) {
-      photo.lightroomSuggestions = generateLightroomSuggestions(photo, purpose);
+      photo.lightroomSuggestions = generateLightroomSuggestions(photo, styleHint);
     }
   }
 

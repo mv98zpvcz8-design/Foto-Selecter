@@ -1,25 +1,5 @@
 import { groupPhotos } from './grouping';
-import type { PhotoResult, Purpose } from '../types';
-
-interface Weights {
-  sharpness: number;
-  exposure: number;
-  group: number;
-}
-
-/**
- * Weighting presets per intended use. Portfolio work leans hardest on
- * technical sharpness since images are judged large and close-up;
- * Instagram leans on exposure/punchiness since images are viewed small;
- * client delivery stays balanced and favors variety (lower group weight)
- * so near-duplicates don't crowd out different moments.
- */
-export const PURPOSE_WEIGHTS: Record<Purpose, Weights> = {
-  instagram: { sharpness: 0.35, exposure: 0.4, group: 0.25 },
-  kunde: { sharpness: 0.45, exposure: 0.35, group: 0.2 },
-  portfolio: { sharpness: 0.55, exposure: 0.25, group: 0.2 },
-  sonstiges: { sharpness: 0.45, exposure: 0.3, group: 0.25 },
-};
+import type { PhotoResult, WeightProfile } from '../types';
 
 const IDEAL_LUMINANCE_MIN = 80;
 const IDEAL_LUMINANCE_MAX = 190;
@@ -64,6 +44,12 @@ function computeExposureScore(shadowClipping: number, highlightClipping: number,
   return clamp(Math.round(100 - clippingPenalty - meanPenalty), 0, 100);
 }
 
+/** Neutral 100 when no faces were detected (landscapes shouldn't be penalized); otherwise the share of faces with eyes open. */
+function computeFaceScore(facesDetected: number, facesWithClosedEyes: number): number {
+  if (facesDetected <= 0) return 100;
+  return clamp(Math.round((100 * (facesDetected - facesWithClosedEyes)) / facesDetected), 0, 100);
+}
+
 function groupBonus(groupRank: number): number {
   return clamp(Math.round(100 * Math.max(0, 1 - 0.35 * (groupRank - 1))), 0, 100);
 }
@@ -72,12 +58,25 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+/** Weighted blend used only to rank frames within the same burst — the `group` weight doesn't apply here since it's meaningless relative to siblings. */
+function intraGroupRankScore(photo: PhotoResult, weights: WeightProfile): number {
+  const w = weights.sharpness + weights.exposure + weights.faces;
+  if (w <= 0) return 0;
+  return (
+    (weights.sharpness * (photo.sharpnessScore ?? 0) +
+      weights.exposure * (photo.exposureScore ?? 0) +
+      weights.faces * (photo.faceScore ?? 100)) /
+    w
+  );
+}
+
 /**
- * Fills in sharpnessScore, exposureScore, group membership/rank and the
- * weighted overallScore for every successfully processed photo. Does not
- * decide the final top-N selection; call selectTopN for that.
+ * Fills in sharpnessScore, exposureScore, faceScore, group membership/rank
+ * and the weighted overallScore for every successfully processed photo,
+ * using the given (already-resolved) weight profile. Does not decide the
+ * final top-N selection; call selectTopN for that.
  */
-export function scorePhotos(photos: PhotoResult[], purpose: Purpose): void {
+export function scorePhotos(photos: PhotoResult[], weights: WeightProfile): void {
   normalizeSharpnessScores(photos);
 
   for (const photo of photos) {
@@ -87,6 +86,7 @@ export function scorePhotos(photos: PhotoResult[], purpose: Purpose): void {
       photo.highlightClipping ?? 0,
       photo.meanLuminance ?? 128,
     );
+    photo.faceScore = computeFaceScore(photo.facesDetected ?? 0, photo.facesWithClosedEyes ?? 0);
   }
 
   const doneIndices = photos
@@ -98,11 +98,7 @@ export function scorePhotos(photos: PhotoResult[], purpose: Purpose): void {
 
   groups.forEach((memberPositions, gid) => {
     const memberIndices = memberPositions.map((pos) => doneIndices[pos]);
-    memberIndices.sort((a, b) => {
-      const scoreA = (photos[a].sharpnessScore ?? 0) * 0.6 + (photos[a].exposureScore ?? 0) * 0.4;
-      const scoreB = (photos[b].sharpnessScore ?? 0) * 0.6 + (photos[b].exposureScore ?? 0) * 0.4;
-      return scoreB - scoreA;
-    });
+    memberIndices.sort((a, b) => intraGroupRankScore(photos[b], weights) - intraGroupRankScore(photos[a], weights));
     memberIndices.forEach((photoIndex, rankZeroBased) => {
       photos[photoIndex].groupId = gid;
       photos[photoIndex].groupRank = rankZeroBased + 1;
@@ -110,14 +106,17 @@ export function scorePhotos(photos: PhotoResult[], purpose: Purpose): void {
     });
   });
 
-  const weights = PURPOSE_WEIGHTS[purpose];
   for (const photo of photos) {
     if (photo.status !== 'done') continue;
+    const groupBonusScore = groupBonus(photo.groupRank ?? 1);
     const overall =
       weights.sharpness * (photo.sharpnessScore ?? 0) +
       weights.exposure * (photo.exposureScore ?? 0) +
-      weights.group * groupBonus(photo.groupRank ?? 1);
+      weights.faces * (photo.faceScore ?? 100) +
+      weights.group * groupBonusScore;
+    photo.groupBonusScore = groupBonusScore;
     photo.overallScore = Math.round(overall);
+    photo.appliedWeights = weights;
   }
 }
 

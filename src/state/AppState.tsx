@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useReducer, type ReactNode, type Dispatch } from 'react';
-import type { AppStep, PhotoResult, Purpose, ProcessingProgress } from '../types';
+import type { AppStep, CustomPreset, PhotoResult, ProcessingProgress, ProfileRef } from '../types';
 import type { Lang } from '../i18n/translations';
 import { isSupportedFile } from '../lib/fileTypes';
 import { createInitialPhotoResults } from '../lib/pipeline';
+import { DEFAULT_PROFILE_REF } from '../lib/profiles';
 
 const LANG_STORAGE_KEY = 'foto-selecter-lang';
+const PRESETS_STORAGE_KEY = 'foto-selecter-presets';
 
 function getInitialLang(): Lang {
   try {
@@ -19,12 +21,23 @@ function getInitialLang(): Lang {
   return 'de';
 }
 
+function getInitialCustomPresets(): CustomPreset[] {
+  try {
+    const stored = window.localStorage.getItem(PRESETS_STORAGE_KEY);
+    if (stored) return JSON.parse(stored) as CustomPreset[];
+  } catch {
+    // localStorage unavailable or corrupt — start with none
+  }
+  return [];
+}
+
 interface AppState {
   step: AppStep;
   photos: PhotoResult[];
   rejectedFileNames: string[];
   targetCount: number;
-  purpose: Purpose;
+  profileRef: ProfileRef;
+  customPresets: CustomPreset[];
   progress: ProcessingProgress;
   showAll: boolean;
   lang: Lang;
@@ -35,7 +48,9 @@ type Action =
   | { type: 'REMOVE_FILE'; id: string }
   | { type: 'CLEAR_FILES' }
   | { type: 'SET_TARGET_COUNT'; count: number }
-  | { type: 'SET_PURPOSE'; purpose: Purpose }
+  | { type: 'SET_PROFILE_REF'; profileRef: ProfileRef }
+  | { type: 'SAVE_PRESET'; preset: CustomPreset }
+  | { type: 'DELETE_PRESET'; id: string }
   | { type: 'GO_TO_STEP'; step: AppStep }
   | { type: 'START_PROCESSING' }
   | { type: 'SET_PROGRESS'; progress: ProcessingProgress }
@@ -51,7 +66,8 @@ function createInitialState(): AppState {
     photos: [],
     rejectedFileNames: [],
     targetCount: 20,
-    purpose: 'kunde',
+    profileRef: DEFAULT_PROFILE_REF,
+    customPresets: getInitialCustomPresets(),
     progress: { done: 0, total: 0 },
     showAll: false,
     lang: getInitialLang(),
@@ -85,8 +101,23 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, photos: [], rejectedFileNames: [] };
     case 'SET_TARGET_COUNT':
       return { ...state, targetCount: Math.max(1, Math.round(action.count)) };
-    case 'SET_PURPOSE':
-      return { ...state, purpose: action.purpose };
+    case 'SET_PROFILE_REF':
+      return { ...state, profileRef: action.profileRef };
+    case 'SAVE_PRESET': {
+      const exists = state.customPresets.some((p) => p.id === action.preset.id);
+      const customPresets = exists
+        ? state.customPresets.map((p) => (p.id === action.preset.id ? action.preset : p))
+        : [...state.customPresets, action.preset];
+      return { ...state, customPresets, profileRef: { kind: 'custom', presetId: action.preset.id } };
+    }
+    case 'DELETE_PRESET': {
+      const customPresets = state.customPresets.filter((p) => p.id !== action.id);
+      const profileRef =
+        state.profileRef.kind === 'custom' && state.profileRef.presetId === action.id
+          ? DEFAULT_PROFILE_REF
+          : state.profileRef;
+      return { ...state, customPresets, profileRef };
+    }
     case 'GO_TO_STEP':
       return { ...state, step: action.step };
     case 'START_PROCESSING':
@@ -108,7 +139,7 @@ function reducer(state: AppState, action: Action): AppState {
       for (const photo of state.photos) {
         if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
       }
-      return { ...createInitialState(), lang: state.lang };
+      return { ...createInitialState(), lang: state.lang, customPresets: state.customPresets };
     }
     default:
       return state;
@@ -132,6 +163,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       // localStorage unavailable — language choice just won't persist
     }
   }, [state.lang]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(state.customPresets));
+    } catch {
+      // localStorage unavailable — custom presets just won't persist
+    }
+  }, [state.customPresets]);
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
 }

@@ -14,6 +14,14 @@ export function formatReasoning(info: ReasoningInfo, t: T): string {
     }
   }
 
+  if ((info.facesDetected ?? 0) > 0) {
+    if (info.facesWithClosedEyes) {
+      parts.push(t('reasoning.eyesClosed', { count: info.facesWithClosedEyes }));
+    } else {
+      parts.push(t('reasoning.eyesOpen'));
+    }
+  }
+
   return parts.join(', ');
 }
 

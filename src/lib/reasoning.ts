@@ -8,6 +8,8 @@ export interface ReasoningInfo {
   exposure: ExposureLevel;
   groupRank?: number;
   groupSize?: number;
+  facesDetected?: number;
+  facesWithClosedEyes?: number;
 }
 
 /**
@@ -23,5 +25,12 @@ export function classifyReasoning(photo: PhotoResult): ReasoningInfo {
   const shadowHeavy = (photo.shadowClipping ?? 0) > (photo.highlightClipping ?? 0);
   const exposure: ExposureLevel = e >= 80 ? 'good' : e >= 60 ? 'acceptable' : shadowHeavy ? 'underexposed' : 'overexposed';
 
-  return { sharpness, exposure, groupRank: photo.groupRank, groupSize: photo.groupSize };
+  return {
+    sharpness,
+    exposure,
+    groupRank: photo.groupRank,
+    groupSize: photo.groupSize,
+    facesDetected: photo.facesDetected,
+    facesWithClosedEyes: photo.facesWithClosedEyes,
+  };
 }

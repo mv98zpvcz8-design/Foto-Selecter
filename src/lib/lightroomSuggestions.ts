@@ -14,7 +14,7 @@ const SHARPNESS_HEADROOM = 75; // below this, extra sharpening still helps
  * of the UI language; the `kind` is resolved to a localized explanation
  * at render time via `lr.${kind}` translation keys.
  */
-export function generateLightroomSuggestions(photo: PhotoResult, purpose: Purpose): LightroomSuggestion[] {
+export function generateLightroomSuggestions(photo: PhotoResult, styleHint: Purpose): LightroomSuggestion[] {
   const suggestions: LightroomSuggestion[] = [];
 
   const highlightClipping = photo.highlightClipping ?? 0;
@@ -48,7 +48,7 @@ export function generateLightroomSuggestions(photo: PhotoResult, purpose: Purpos
     suggestions.push({ slider: 'Sharpening — Amount / Radius / Masking', kind: 'sharpening' });
   }
 
-  suggestions.push(...purposeFinishingTouches(purpose));
+  suggestions.push(...purposeFinishingTouches(styleHint));
 
   return suggestions;
 }

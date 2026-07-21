@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import type { PhotoResult } from '../types';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { classifyReasoning } from '../lib/reasoning';
 import { formatReasoning, formatSuggestionNote } from '../i18n/format';
+import { ScoreBreakdown } from './ScoreBreakdown';
 
 export function PhotoCard({ photo }: { photo: PhotoResult }) {
   const { dispatch } = useAppState();
   const t = useT();
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   if (photo.status === 'error') {
     return (
@@ -45,7 +48,19 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
           aria-label={t('photo.selectAria', { name: photo.name })}
         />
         {photo.previewUrl && <img src={photo.previewUrl} alt={photo.name} loading="lazy" />}
-        {photo.overallScore != null && <span className="score-badge">{photo.overallScore}</span>}
+        {photo.overallScore != null && (
+          <button
+            type="button"
+            className="score-badge"
+            title={t('photo.scoreHint')}
+            onClick={() => setShowBreakdown(true)}
+          >
+            {photo.overallScore}
+          </button>
+        )}
+        {(photo.facesWithClosedEyes ?? 0) > 0 && (
+          <span className="eyes-closed-badge">{t('photo.eyesClosedBadge')}</span>
+        )}
         {(photo.groupSize ?? 1) > 1 && (
           <span className="group-badge">
             {t('photo.seriesBadge', { rank: photo.groupRank ?? 1, size: photo.groupSize ?? 1 })}
@@ -54,7 +69,18 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
       </div>
       <div className="photo-info">
         <span className="photo-name">{photo.name}</span>
-        <span className="photo-reasoning">{formatReasoning(classifyReasoning(photo), t)}</span>
+        <div className="photo-reasoning-row">
+          <span className="photo-reasoning">{formatReasoning(classifyReasoning(photo), t)}</span>
+          <button
+            type="button"
+            className="info-icon-btn"
+            title={t('photo.scoreHint')}
+            aria-label={t('photo.scoreHint')}
+            onClick={() => setShowBreakdown(true)}
+          >
+            ⓘ
+          </button>
+        </div>
         {photo.lightroomSuggestions && photo.lightroomSuggestions.length > 0 && (
           <div className="lr-suggestions">
             <div className="lr-suggestions-heading">{t('photo.lightroomHeading')}</div>
@@ -69,6 +95,8 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
           </div>
         )}
       </div>
+
+      {showBreakdown && <ScoreBreakdown photo={photo} onClose={() => setShowBreakdown(false)} />}
     </div>
   );
 }

@@ -3,11 +3,17 @@ import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { PhotoCard } from './PhotoCard';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
+import { resolveCustomPreset } from '../lib/profiles';
 
 export function ResultsScreen() {
   const { state, dispatch } = useAppState();
   const t = useT();
-  const { photos, showAll, purpose } = state;
+  const { photos, showAll } = state;
+
+  const profileDisplayName =
+    state.profileRef.kind === 'builtin'
+      ? t(`purpose.${state.profileRef.purpose}`)
+      : resolveCustomPreset(state.profileRef, state.customPresets)?.name ?? t('purpose.sonstiges');
 
   const donePhotos = useMemo(() => photos.filter((p) => p.status === 'done'), [photos]);
   const errorPhotos = useMemo(() => photos.filter((p) => p.status === 'error'), [photos]);
@@ -30,7 +36,7 @@ export function ResultsScreen() {
           </div>
           <div>
             <strong>{preselected.length}</strong>
-            <div>{t('results.suggested', { purpose: t(`purpose.${purpose}`) })}</div>
+            <div>{t('results.suggested', { purpose: profileDisplayName })}</div>
           </div>
           <div>
             <strong>{donePhotos.length}</strong>
