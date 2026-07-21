@@ -3,7 +3,7 @@ import { extractExifMeta } from './exifMeta';
 import { analyzeImage } from './imageAnalysis';
 import { computeDHash } from './perceptualHash';
 import { analyzeFacesSafe } from './faceAnalysis';
-import { scorePhotos, selectTopN } from './scoring';
+import { scorePhotos, selectTopN, selectTriage } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
 import { assignCarouselPositions } from './carousel';
 import {
@@ -13,7 +13,7 @@ import {
   ERR_PREVIEW_LOAD,
   type PipelineErrorCode,
 } from './errorCodes';
-import type { PhotoResult, Purpose, WeightProfile } from '../types';
+import type { PhotoResult, Purpose, SelectionConfig, WeightProfile } from '../types';
 
 const ERROR_KEY_BY_CODE: Record<PipelineErrorCode, string> = {
   [ERR_NO_PREVIEW]: 'error.noPreview',
@@ -74,7 +74,7 @@ export async function runPipeline(
   photos: PhotoResult[],
   weights: WeightProfile,
   styleHint: Purpose,
-  targetCount: number,
+  selection: SelectionConfig,
   onProgress: (done: number, total: number) => void,
   cancelToken: CancelToken = { cancelled: false },
 ): Promise<PhotoResult[]> {
@@ -129,7 +129,11 @@ export async function runPipeline(
   if (cancelToken.cancelled) return photos;
 
   scorePhotos(photos, weights);
-  selectTopN(photos, targetCount);
+  if (selection.mode === 'triage') {
+    selectTriage(photos);
+  } else {
+    selectTopN(photos, selection.targetCount);
+  }
 
   for (const photo of photos) {
     if (photo.isPreselected) {

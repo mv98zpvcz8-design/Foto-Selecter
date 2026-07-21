@@ -72,6 +72,11 @@ function purposeFinishingTouches(purpose: Purpose): LightroomSuggestion[] {
         { slider: 'White Balance — Temp / Tint', kind: 'kundeWhiteBalance' },
         { slider: 'Tone Curve', kind: 'kundeToneCurve' },
       ];
+    case 'video':
+      return [
+        { slider: 'Noise Reduction — Luminance / Detail', kind: 'videoDenoise' },
+        { slider: 'Sharpening — Amount / Radius', kind: 'videoSharpening' },
+      ];
     default:
       return [{ slider: 'Tone Curve', kind: 'defaultToneCurve' }];
   }

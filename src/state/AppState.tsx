@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer, type ReactNode, type Dispatch } from 'react';
-import type { AppStep, CustomPreset, PhotoResult, ProcessingProgress, ProfileRef } from '../types';
+import type { AppStep, CustomPreset, PhotoResult, ProcessingProgress, ProfileRef, SelectionMode } from '../types';
 import type { Lang } from '../i18n/translations';
 import { isSupportedFile } from '../lib/fileTypes';
 import { createInitialPhotoResults } from '../lib/pipeline';
@@ -36,6 +36,7 @@ interface AppState {
   photos: PhotoResult[];
   rejectedFileNames: string[];
   targetCount: number;
+  selectionMode: SelectionMode;
   profileRef: ProfileRef;
   customPresets: CustomPreset[];
   progress: ProcessingProgress;
@@ -48,6 +49,7 @@ type Action =
   | { type: 'REMOVE_FILE'; id: string }
   | { type: 'CLEAR_FILES' }
   | { type: 'SET_TARGET_COUNT'; count: number }
+  | { type: 'SET_SELECTION_MODE'; mode: SelectionMode }
   | { type: 'SET_PROFILE_REF'; profileRef: ProfileRef }
   | { type: 'SAVE_PRESET'; preset: CustomPreset }
   | { type: 'DELETE_PRESET'; id: string }
@@ -68,6 +70,7 @@ function createInitialState(): AppState {
     photos: [],
     rejectedFileNames: [],
     targetCount: 20,
+    selectionMode: 'topN',
     profileRef: DEFAULT_PROFILE_REF,
     customPresets: getInitialCustomPresets(),
     progress: { done: 0, total: 0 },
@@ -103,6 +106,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, photos: [], rejectedFileNames: [] };
     case 'SET_TARGET_COUNT':
       return { ...state, targetCount: Math.max(1, Math.round(action.count)) };
+    case 'SET_SELECTION_MODE':
+      return { ...state, selectionMode: action.mode };
     case 'SET_PROFILE_REF':
       return { ...state, profileRef: action.profileRef };
     case 'SAVE_PRESET': {

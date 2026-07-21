@@ -65,18 +65,43 @@ export function ConfigScreen() {
   return (
     <div className="config-panel">
       <div className="config-field">
-        <label htmlFor="target-count">{t('config.targetLabel')}</label>
-        <input
-          id="target-count"
-          type="number"
-          min={1}
-          max={state.photos.length}
-          className="number-input"
-          value={state.targetCount}
-          onChange={(e) => dispatch({ type: 'SET_TARGET_COUNT', count: Number(e.target.value) || 1 })}
-        />
-        <p className="config-hint">{t('config.targetHint', { total: state.photos.length })}</p>
+        <label>{t('config.modeLabel')}</label>
+        <div className="segmented-control">
+          <button
+            type="button"
+            className={`segment-btn${state.selectionMode === 'topN' ? ' selected' : ''}`}
+            onClick={() => dispatch({ type: 'SET_SELECTION_MODE', mode: 'topN' })}
+          >
+            {t('config.modeTopN')}
+          </button>
+          <button
+            type="button"
+            className={`segment-btn${state.selectionMode === 'triage' ? ' selected' : ''}`}
+            onClick={() => dispatch({ type: 'SET_SELECTION_MODE', mode: 'triage' })}
+          >
+            {t('config.modeTriage')}
+          </button>
+        </div>
+        <p className="purpose-description">
+          {t(state.selectionMode === 'triage' ? 'config.modeTriage.desc' : 'config.modeTopN.desc')}
+        </p>
       </div>
+
+      {state.selectionMode === 'topN' && (
+        <div className="config-field">
+          <label htmlFor="target-count">{t('config.targetLabel')}</label>
+          <input
+            id="target-count"
+            type="number"
+            min={1}
+            max={state.photos.length}
+            className="number-input"
+            value={state.targetCount}
+            onChange={(e) => dispatch({ type: 'SET_TARGET_COUNT', count: Number(e.target.value) || 1 })}
+          />
+          <p className="config-hint">{t('config.targetHint', { total: state.photos.length })}</p>
+        </div>
+      )}
 
       <div className="config-field">
         <label>{t('config.purposeLabel')}</label>

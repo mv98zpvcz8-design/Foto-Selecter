@@ -1,8 +1,18 @@
 import { groupPhotos } from './grouping';
-import type { PhotoResult, WeightProfile } from '../types';
+import type { PhotoResult, Tier, WeightProfile } from '../types';
 
 const IDEAL_LUMINANCE_MIN = 80;
 const IDEAL_LUMINANCE_MAX = 190;
+
+// Overall-score thresholds for triage mode: below POTENTIAL is a skip,
+// POTENTIAL..EDIT has "worth a second look" potential, EDIT and above is
+// a clear yes.
+export const TIER_EDIT_THRESHOLD = 70;
+export const TIER_POTENTIAL_THRESHOLD = 45;
+
+export function tierForScore(score: number): Tier {
+  return score >= TIER_EDIT_THRESHOLD ? 'edit' : score >= TIER_POTENTIAL_THRESHOLD ? 'potential' : 'skip';
+}
 
 /**
  * The higher of the whole-frame sharpness and the detected subject/tile
@@ -174,6 +184,41 @@ export function selectTopN(photos: PhotoResult[], targetCount: number): void {
   for (const p of photos) {
     if (p.status === 'done') {
       p.isSelected = p.isPreselected;
+    }
+  }
+}
+
+/**
+ * Alternative to selectTopN for reviewing a whole shoot without a fixed
+ * target count: takes the best-ranked photo from every burst/similarity
+ * group (so near-duplicates don't clutter the review) and tiers each one
+ * as "edit" / "potential" / "skip" by its overall score. "edit" photos
+ * are pre-checked for export; "potential" and "skip" are shown for
+ * context but left unchecked — the user's call whether to include them.
+ */
+export function selectTriage(photos: PhotoResult[]): void {
+  const done = photos.filter((p) => p.status === 'done');
+  for (const p of done) {
+    p.isPreselected = false;
+    p.tier = undefined;
+  }
+
+  const byGroup = new Map<number, PhotoResult[]>();
+  for (const p of done) {
+    const gid = p.groupId ?? -1;
+    if (!byGroup.has(gid)) byGroup.set(gid, []);
+    byGroup.get(gid)!.push(p);
+  }
+
+  for (const members of byGroup.values()) {
+    const best = members.reduce((a, b) => ((b.overallScore ?? 0) > (a.overallScore ?? 0) ? b : a));
+    best.isPreselected = true;
+    best.tier = tierForScore(best.overallScore ?? 0);
+  }
+
+  for (const p of photos) {
+    if (p.status === 'done') {
+      p.isSelected = p.tier === 'edit';
     }
   }
 }

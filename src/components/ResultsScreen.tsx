@@ -5,11 +5,35 @@ import { PhotoCard } from './PhotoCard';
 import { CarouselSection } from './CarouselSection';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
+import { tierForScore } from '../lib/scoring';
+import type { PhotoResult, Tier } from '../types';
+
+function TierSection({
+  titleKey,
+  photos,
+}: {
+  titleKey: string;
+  photos: PhotoResult[];
+}) {
+  const t = useT();
+  if (photos.length === 0) return null;
+  return (
+    <>
+      <div className="section-heading">{t(titleKey)} ({photos.length})</div>
+      <div className="photo-grid">
+        {photos.map((p, i) => (
+          <PhotoCard key={p.id} photo={p} allPhotos={photos} index={i} />
+        ))}
+      </div>
+    </>
+  );
+}
 
 export function ResultsScreen() {
   const { state, dispatch } = useAppState();
   const t = useT();
   const { photos, showAll } = state;
+  const isTriage = state.selectionMode === 'triage';
 
   const profileDisplayName =
     state.profileRef.kind === 'builtin'
@@ -33,22 +57,53 @@ export function ResultsScreen() {
     [visiblePhotos],
   );
 
+  const tierBuckets = useMemo(() => {
+    const buckets: Record<Tier, PhotoResult[]> = { edit: [], potential: [], skip: [] };
+    for (const p of sortedVisible) {
+      const tier = p.tier ?? tierForScore(p.overallScore ?? 0);
+      buckets[tier].push(p);
+    }
+    return buckets;
+  }, [sortedVisible]);
+
+  const editCount = useMemo(() => donePhotos.filter((p) => p.tier === 'edit').length, [donePhotos]);
+  const potentialCount = useMemo(() => donePhotos.filter((p) => p.tier === 'potential').length, [donePhotos]);
+
   return (
     <div>
       <div className="results-toolbar">
         <div className="results-stats">
-          <div>
-            <strong>{selectedCount}</strong>
-            <div>{t('results.selected')}</div>
-          </div>
-          <div>
-            <strong>{preselected.length}</strong>
-            <div>{t('results.suggested', { purpose: profileDisplayName })}</div>
-          </div>
-          <div>
-            <strong>{donePhotos.length}</strong>
-            <div>{t('results.totalAnalyzed')}</div>
-          </div>
+          {isTriage ? (
+            <>
+              <div>
+                <strong>{editCount}</strong>
+                <div>{t('results.tierEdit')}</div>
+              </div>
+              <div>
+                <strong>{potentialCount}</strong>
+                <div>{t('results.tierPotential')}</div>
+              </div>
+              <div>
+                <strong>{donePhotos.length}</strong>
+                <div>{t('results.totalAnalyzed')}</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <strong>{selectedCount}</strong>
+                <div>{t('results.selected')}</div>
+              </div>
+              <div>
+                <strong>{preselected.length}</strong>
+                <div>{t('results.suggested', { purpose: profileDisplayName })}</div>
+              </div>
+              <div>
+                <strong>{donePhotos.length}</strong>
+                <div>{t('results.totalAnalyzed')}</div>
+              </div>
+            </>
+          )}
         </div>
         <div className="toolbar-actions">
           <label className="toggle-switch">
@@ -80,7 +135,17 @@ export function ResultsScreen() {
 
       {isInstagram && carouselPhotos.length > 0 && <CarouselSection photos={carouselPhotos} />}
 
-      {sortedVisible.length === 0 ? (
+      {isTriage ? (
+        sortedVisible.length === 0 ? (
+          <div className="empty-state">{t('results.empty')}</div>
+        ) : (
+          <>
+            <TierSection titleKey="results.tierEdit" photos={tierBuckets.edit} />
+            <TierSection titleKey="results.tierPotential" photos={tierBuckets.potential} />
+            <TierSection titleKey="results.tierSkip" photos={tierBuckets.skip} />
+          </>
+        )
+      ) : sortedVisible.length === 0 ? (
         <div className="empty-state">{t('results.empty')}</div>
       ) : (
         <div className="photo-grid">

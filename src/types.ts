@@ -1,6 +1,10 @@
-export type Purpose = 'instagram' | 'kunde' | 'portfolio' | 'sonstiges';
+export type Purpose = 'instagram' | 'kunde' | 'portfolio' | 'video' | 'sonstiges';
 
-export const PURPOSE_VALUES: Purpose[] = ['instagram', 'kunde', 'portfolio', 'sonstiges'];
+export const PURPOSE_VALUES: Purpose[] = ['instagram', 'kunde', 'portfolio', 'video', 'sonstiges'];
+
+export type SelectionMode = 'topN' | 'triage';
+export type Tier = 'edit' | 'potential' | 'skip';
+export type SelectionConfig = { mode: 'topN'; targetCount: number } | { mode: 'triage' };
 
 export interface WeightProfile {
   sharpness: number;
@@ -63,6 +67,8 @@ export interface PhotoResult {
   lightroomSuggestions?: LightroomSuggestion[];
 
   carouselPosition?: number; // 1-based; only set when the active style is Instagram
+
+  tier?: Tier; // only set in 'triage' selection mode
 }
 
 export type SuggestionKind =
@@ -79,6 +85,8 @@ export type SuggestionKind =
   | 'instaVignette'
   | 'kundeWhiteBalance'
   | 'kundeToneCurve'
+  | 'videoDenoise'
+  | 'videoSharpening'
   | 'defaultToneCurve';
 
 export interface LightroomSuggestion {

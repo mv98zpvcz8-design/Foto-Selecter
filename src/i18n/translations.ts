@@ -18,6 +18,12 @@ const de: Record<string, string> = {
   'upload.readyCount': '{{count}} Foto(s) bereit',
   'upload.removeAria': '{{name}} entfernen',
 
+  'config.modeLabel': 'Modus',
+  'config.modeTopN': 'Feste Anzahl',
+  'config.modeTriage': 'Alle sichten & einstufen',
+  'config.modeTopN.desc': 'Du gibst eine Zielanzahl vor, die App schlägt genau so viele Fotos vor.',
+  'config.modeTriage.desc':
+    'Lade den ganzen Shoot hoch — die App stuft jedes Serien-Beste in "Bearbeiten", "Hat Potenzial" oder "Nicht empfohlen" ein, statt eine feste Anzahl zu erzwingen.',
   'config.targetLabel': 'Zielanzahl Fotos',
   'config.targetHint': 'Wie viele Fotos sollen am Ende zur Bearbeitung vorgeschlagen werden? (von {{total}} hochgeladenen)',
   'config.purposeLabel': 'Verwendungszweck',
@@ -27,10 +33,12 @@ const de: Record<string, string> = {
   'purpose.instagram': 'Instagram',
   'purpose.kunde': 'Kunde',
   'purpose.portfolio': 'Portfolio',
+  'purpose.video': 'Video-Frame',
   'purpose.sonstiges': 'Sonstiges',
   'purpose.instagram.desc': 'Belichtung & Wirkung im Feed zählen mehr als reine Detailschärfe',
   'purpose.kunde.desc': 'Ausgewogen, mit Fokus auf Verlässlichkeit und Vielfalt der Momente',
   'purpose.portfolio.desc': 'Höchste Ansprüche an Schärfe & technische Qualität',
+  'purpose.video.desc': 'Bestes Einzelbild aus einer kurzen Sequenz (z.B. Sport-Burst aus Video) herausziehen',
   'purpose.sonstiges.desc': 'Ausgewogene Standard-Gewichtung',
 
   'processing.title': 'Fotos werden analysiert…',
@@ -48,6 +56,9 @@ const de: Record<string, string> = {
   'results.newRun': 'Neuer Durchlauf',
   'results.empty': 'Keine Fotos in dieser Ansicht.',
   'results.errorSection': 'Nicht auswertbare Dateien ({{count}})',
+  'results.tierEdit': 'Bearbeiten',
+  'results.tierPotential': 'Hat Potenzial',
+  'results.tierSkip': 'Nicht empfohlen',
   'results.carouselHeading': 'Instagram-Carousel-Reihenfolge',
   'results.carouselHint': 'Ziehen zum Umsortieren. Cover-Bild zuerst, danach eine ausgewogene Mischung aus Ausrichtung und Aufnahme-Chronologie.',
 
@@ -132,9 +143,11 @@ const de: Record<string, string> = {
   'lr.instaVignette': 'Dezent abdunkeln, um den Blick zum Motiv zu lenken.',
   'lr.kundeWhiteBalance': 'Feinabstimmung für konsistente, natürliche Farben über die ganze Serie.',
   'lr.kundeToneCurve': 'Sanfter Grundkontrast für ein poliertes, aber unaufdringliches Ergebnis.',
+  'lr.videoDenoise': 'Video-Frames haben oft Kompressionsartefakte/Rauschen — Luminanz-Rauschreduzierung moderat erhöhen, bevor nachgeschärft wird.',
+  'lr.videoSharpening': 'Vorsichtig nachschärfen (kleiner Radius), um Codec-Weichzeichnung auszugleichen, ohne Kompressionsblöcke zu betonen.',
   'lr.defaultToneCurve': 'Grundkontrast verfeinern für mehr Bildwirkung.',
 
-  'export.header': 'Dateiname,Score,Begründung,Vorausgewählt,Lightroom-Empfehlungen,Carousel-Position',
+  'export.header': 'Dateiname,Score,Begründung,Vorausgewählt,Lightroom-Empfehlungen,Carousel-Position,Empfehlung',
   'export.yes': 'ja',
   'export.no': 'nein',
 
@@ -160,6 +173,12 @@ const en: Record<string, string> = {
   'upload.readyCount': '{{count}} photo(s) ready',
   'upload.removeAria': 'Remove {{name}}',
 
+  'config.modeLabel': 'Mode',
+  'config.modeTopN': 'Fixed count',
+  'config.modeTriage': 'Review all & tier',
+  'config.modeTopN.desc': 'You set a target count, the app suggests exactly that many photos.',
+  'config.modeTriage.desc':
+    'Upload the whole shoot — the app tiers every series-best into "Edit", "Has potential", or "Not recommended" instead of forcing a fixed count.',
   'config.targetLabel': 'Target number of photos',
   'config.targetHint': 'How many photos should be suggested for editing in the end? (of {{total}} uploaded)',
   'config.purposeLabel': 'Intended use',
@@ -169,10 +188,12 @@ const en: Record<string, string> = {
   'purpose.instagram': 'Instagram',
   'purpose.kunde': 'Client',
   'purpose.portfolio': 'Portfolio',
+  'purpose.video': 'Video Frame',
   'purpose.sonstiges': 'Other',
   'purpose.instagram.desc': 'Exposure & feed impact matter more than raw sharpness',
   'purpose.kunde.desc': 'Balanced, with a focus on reliability and variety of moments',
   'purpose.portfolio.desc': 'Highest demands on sharpness & technical quality',
+  'purpose.video.desc': 'Pulls the single best frame out of a short burst sequence (e.g. sports bursts extracted from video)',
   'purpose.sonstiges.desc': 'Balanced default weighting',
 
   'processing.title': 'Analyzing photos…',
@@ -190,6 +211,9 @@ const en: Record<string, string> = {
   'results.newRun': 'New run',
   'results.empty': 'No photos in this view.',
   'results.errorSection': "Files that couldn't be evaluated ({{count}})",
+  'results.tierEdit': 'Edit',
+  'results.tierPotential': 'Has potential',
+  'results.tierSkip': 'Not recommended',
   'results.carouselHeading': 'Instagram carousel order',
   'results.carouselHint': 'Drag to reorder. Cover image first, then a balanced mix of orientation and capture chronology.',
 
@@ -273,9 +297,11 @@ const en: Record<string, string> = {
   'lr.instaVignette': 'Darken subtly to draw the eye to the subject.',
   'lr.kundeWhiteBalance': 'Fine-tune for consistent, natural color across the whole set.',
   'lr.kundeToneCurve': 'Gentle base contrast for a polished but understated result.',
+  'lr.videoDenoise': 'Video frames often carry compression artifacts/noise — raise luminance noise reduction moderately before sharpening.',
+  'lr.videoSharpening': 'Sharpen carefully with a small radius to counter codec softness without emphasizing compression blocks.',
   'lr.defaultToneCurve': 'Refine base contrast for more visual impact.',
 
-  'export.header': 'Filename,Score,Reasoning,Preselected,Lightroom Recommendations,Carousel Position',
+  'export.header': 'Filename,Score,Reasoning,Preselected,Lightroom Recommendations,Carousel Position,Recommendation',
   'export.yes': 'yes',
   'export.no': 'no',
 

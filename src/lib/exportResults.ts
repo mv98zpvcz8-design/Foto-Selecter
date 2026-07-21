@@ -36,6 +36,13 @@ export function exportAsTxt(photos: PhotoResult[]) {
   download('opticsbydom-auswahl.txt', content, 'text/plain;charset=utf-8');
 }
 
+function tierLabel(p: PhotoResult, t: T): string {
+  if (p.tier === 'edit') return t('results.tierEdit');
+  if (p.tier === 'potential') return t('results.tierPotential');
+  if (p.tier === 'skip') return t('results.tierSkip');
+  return '';
+}
+
 export function exportAsCsv(photos: PhotoResult[], t: T) {
   const selected = orderForExport(photos.filter((p) => p.isSelected));
   const header = t('export.header');
@@ -51,6 +58,7 @@ export function exportAsCsv(photos: PhotoResult[], t: T) {
       p.isPreselected ? t('export.yes') : t('export.no'),
       csvEscape(suggestions),
       p.carouselPosition ?? '',
+      csvEscape(tierLabel(p, t)),
     ].join(',');
   });
   const content = [header, ...rows].join('\n');

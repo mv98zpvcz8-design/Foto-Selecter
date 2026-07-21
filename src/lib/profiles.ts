@@ -6,12 +6,17 @@ import type { CustomPreset, ProfileRef, Purpose, WeightProfile } from '../types'
  * Instagram leans on exposure/punchiness since images are viewed small;
  * client delivery weighs faces heavily since most client work is people
  * and a shot with closed eyes rarely gets delivered regardless of how
- * sharp it is; "sonstiges" stays balanced.
+ * sharp it is; video-frame extraction leans hardest of all on sharpness
+ * (codec/motion softness is the main thing separating frames of the same
+ * action moment) with a low group weight (the frames are usually already
+ * one single burst, so "best of series" ranking matters more than
+ * variety across groups); "sonstiges" stays balanced.
  */
 export const PURPOSE_WEIGHTS: Record<Purpose, WeightProfile> = {
   instagram: { sharpness: 0.3, exposure: 0.3, group: 0.2, faces: 0.2 },
   kunde: { sharpness: 0.3, exposure: 0.25, group: 0.15, faces: 0.3 },
   portfolio: { sharpness: 0.45, exposure: 0.2, group: 0.15, faces: 0.2 },
+  video: { sharpness: 0.5, exposure: 0.2, group: 0.1, faces: 0.2 },
   sonstiges: { sharpness: 0.35, exposure: 0.25, group: 0.2, faces: 0.2 },
 };
 

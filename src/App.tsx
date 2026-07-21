@@ -8,7 +8,7 @@ import { ProcessingScreen } from './components/ProcessingScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { runPipeline, type CancelToken } from './lib/pipeline';
 import { resolveStyleHint, resolveWeights } from './lib/profiles';
-import type { AppStep } from './types';
+import type { AppStep, SelectionConfig } from './types';
 
 const STEP_ORDER: AppStep[] = ['upload', 'config', 'processing', 'results'];
 const STEP_LABEL_KEYS: Record<AppStep, string> = {
@@ -74,12 +74,14 @@ function AppContent() {
 
     const weights = resolveWeights(state.profileRef, state.customPresets);
     const styleHint = resolveStyleHint(state.profileRef, state.customPresets);
+    const selection: SelectionConfig =
+      state.selectionMode === 'triage' ? { mode: 'triage' } : { mode: 'topN', targetCount: state.targetCount };
 
     runPipeline(
       state.photos,
       weights,
       styleHint,
-      state.targetCount,
+      selection,
       (done, total) => {
         if (!token.cancelled) dispatch({ type: 'SET_PROGRESS', progress: { done, total } });
       },
@@ -87,7 +89,7 @@ function AppContent() {
     ).then((result) => {
       if (!token.cancelled) dispatch({ type: 'SET_RESULTS', photos: result });
     });
-  }, [state.step, state.photos, state.profileRef, state.customPresets, state.targetCount, dispatch]);
+  }, [state.step, state.photos, state.profileRef, state.customPresets, state.selectionMode, state.targetCount, dispatch]);
 
   function handleCancelProcessing() {
     cancelTokenRef.current.cancelled = true;
