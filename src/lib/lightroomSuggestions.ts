@@ -1,4 +1,5 @@
 import type { LightroomSuggestion, PhotoResult, Purpose } from '../types';
+import { EXCELLENCE_THRESHOLD } from './scoreNotes';
 
 const CLIPPING_THRESHOLD = 0.02; // 2% of pixels near-clipped is already visible
 const LOW_LUMINANCE = 80;
@@ -13,6 +14,11 @@ const SHARPNESS_HEADROOM = 75; // below this, extra sharpening still helps
  * English Lightroom terminology so they map 1:1 onto the panel regardless
  * of the UI language; the `kind` is resolved to a localized explanation
  * at render time via `lr.${kind}` translation keys.
+ *
+ * If nothing measurable needs correcting and the photo already scores as
+ * excellent overall, the purpose-specific finishing touches are skipped
+ * too — this list is meant to flag real, useful moves, not to manufacture
+ * busywork on an already-great shot.
  */
 export function generateLightroomSuggestions(photo: PhotoResult, styleHint: Purpose): LightroomSuggestion[] {
   const suggestions: LightroomSuggestion[] = [];
@@ -48,7 +54,11 @@ export function generateLightroomSuggestions(photo: PhotoResult, styleHint: Purp
     suggestions.push({ slider: 'Sharpening — Amount / Radius / Masking', kind: 'sharpening' });
   }
 
-  suggestions.push(...purposeFinishingTouches(styleHint));
+  const nothingToCorrect = suggestions.length === 0;
+  const alreadyExcellent = (photo.overallScore ?? 0) >= EXCELLENCE_THRESHOLD;
+  if (!(nothingToCorrect && alreadyExcellent)) {
+    suggestions.push(...purposeFinishingTouches(styleHint));
+  }
 
   return suggestions;
 }
@@ -76,6 +86,21 @@ function purposeFinishingTouches(purpose: Purpose): LightroomSuggestion[] {
       return [
         { slider: 'Noise Reduction — Luminance / Detail', kind: 'videoDenoise' },
         { slider: 'Sharpening — Amount / Radius', kind: 'videoSharpening' },
+      ];
+    case 'sport':
+      return [
+        { slider: 'Dehaze', kind: 'sportDehaze' },
+        { slider: 'Crop Overlay', kind: 'sportCrop' },
+      ];
+    case 'event':
+      return [
+        { slider: 'White Balance — Temp / Tint', kind: 'eventWhiteBalance' },
+        { slider: 'Tone Curve', kind: 'eventToneCurve' },
+      ];
+    case 'presse':
+      return [
+        { slider: 'Tone Curve', kind: 'presseToneCurve' },
+        { slider: 'Sharpening — Amount / Radius', kind: 'presseSharpening' },
       ];
     default:
       return [{ slider: 'Tone Curve', kind: 'defaultToneCurve' }];

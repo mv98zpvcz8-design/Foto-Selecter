@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer, type ReactNode, type Dispatch } from 'react';
 import type { AppStep, CustomPreset, PhotoResult, ProcessingProgress, ProfileRef, SelectionMode } from '../types';
 import type { Lang } from '../i18n/translations';
+import type { FilterCombineMode } from '../lib/filters';
 import { isSupportedFile } from '../lib/fileTypes';
 import { createInitialPhotoResults } from '../lib/pipeline';
 import { DEFAULT_PROFILE_REF } from '../lib/profiles';
@@ -43,6 +44,10 @@ interface AppState {
   progress: ProcessingProgress;
   showAll: boolean;
   lang: Lang;
+  activeFilterKeys: string[];
+  filterCombineMode: FilterCombineMode;
+  searchUnmatchedTerms: string[];
+  currentSnapshotId?: string;
 }
 
 type Action =
@@ -63,6 +68,12 @@ type Action =
   | { type: 'SET_SHOW_ALL'; showAll: boolean }
   | { type: 'REORDER_CAROUSEL'; orderedIds: string[] }
   | { type: 'SET_LANG'; lang: Lang }
+  | { type: 'TOGGLE_FAVORITE'; id: string }
+  | { type: 'TOGGLE_FILTER'; key: string }
+  | { type: 'SET_FILTER_COMBINE_MODE'; mode: FilterCombineMode }
+  | { type: 'CLEAR_FILTERS' }
+  | { type: 'APPLY_NATURAL_SEARCH'; matchedKeys: string[]; unmatchedTerms: string[] }
+  | { type: 'SET_CURRENT_SNAPSHOT_ID'; id: string }
   | {
       type: 'RESTORE_SESSION';
       files: File[];
@@ -84,6 +95,9 @@ function createInitialState(): AppState {
     progress: { done: 0, total: 0 },
     showAll: false,
     lang: getInitialLang(),
+    activeFilterKeys: [],
+    filterCombineMode: 'and',
+    searchUnmatchedTerms: [],
   };
 }
 
@@ -117,7 +131,10 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_SELECTION_MODE':
       return { ...state, selectionMode: action.mode };
     case 'SET_PROFILE_REF':
-      return { ...state, profileRef: action.profileRef };
+      // filters are scoped to the active profile's vocabulary, so switching
+      // profiles clears whatever was selected rather than carrying over
+      // filter keys that may not even exist in the new profile
+      return { ...state, profileRef: action.profileRef, activeFilterKeys: [], searchUnmatchedTerms: [] };
     case 'SAVE_PRESET': {
       const exists = state.customPresets.some((p) => p.id === action.preset.id);
       const customPresets = exists
@@ -168,6 +185,27 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_LANG':
       return { ...state, lang: action.lang };
+    case 'TOGGLE_FAVORITE':
+      return {
+        ...state,
+        photos: state.photos.map((p) => (p.id === action.id ? { ...p, isFavorite: !p.isFavorite } : p)),
+      };
+    case 'TOGGLE_FILTER': {
+      const active = state.activeFilterKeys.includes(action.key)
+        ? state.activeFilterKeys.filter((k) => k !== action.key)
+        : [...state.activeFilterKeys, action.key];
+      return { ...state, activeFilterKeys: active };
+    }
+    case 'SET_FILTER_COMBINE_MODE':
+      return { ...state, filterCombineMode: action.mode };
+    case 'CLEAR_FILTERS':
+      return { ...state, activeFilterKeys: [], searchUnmatchedTerms: [] };
+    case 'APPLY_NATURAL_SEARCH': {
+      const merged = new Set([...state.activeFilterKeys, ...action.matchedKeys]);
+      return { ...state, activeFilterKeys: [...merged], searchUnmatchedTerms: action.unmatchedTerms };
+    }
+    case 'SET_CURRENT_SNAPSHOT_ID':
+      return { ...state, currentSnapshotId: action.id };
     case 'RESTORE_SESSION':
       return {
         ...state,
@@ -177,6 +215,8 @@ function reducer(state: AppState, action: Action): AppState {
         profileRef: action.profileRef,
         selectionMode: action.selectionMode,
         step: 'config',
+        activeFilterKeys: [],
+        searchUnmatchedTerms: [],
       };
     case 'RESET': {
       for (const photo of state.photos) {

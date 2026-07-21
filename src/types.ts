@@ -1,6 +1,25 @@
-export type Purpose = 'instagram' | 'kunde' | 'portfolio' | 'video' | 'sonstiges';
+export type Purpose =
+  | 'instagram'
+  | 'kunde'
+  | 'portfolio'
+  | 'video'
+  | 'presse'
+  | 'event'
+  | 'sport'
+  | 'favoriten'
+  | 'sonstiges';
 
-export const PURPOSE_VALUES: Purpose[] = ['instagram', 'kunde', 'portfolio', 'video', 'sonstiges'];
+export const PURPOSE_VALUES: Purpose[] = [
+  'instagram',
+  'kunde',
+  'portfolio',
+  'video',
+  'presse',
+  'event',
+  'sport',
+  'favoriten',
+  'sonstiges',
+];
 
 export type SelectionMode = 'topN' | 'triage';
 export type Tier = 'edit' | 'potential' | 'skip';
@@ -37,6 +56,11 @@ export interface PhotoResult {
 
   captureTime?: Date | null;
   camera?: string;
+  lens?: string;
+  focalLengthMm?: number;
+  iso?: number;
+  shutterSpeedSec?: number;
+  aperture?: number; // f-number
 
   sharpnessRaw?: number; // whole-frame Laplacian variance
   subjectSharpnessRaw?: number; // sharpest local region (face, or a tile far above the frame's median) — catches shallow-DOF/bokeh
@@ -49,7 +73,9 @@ export interface PhotoResult {
 
   facesDetected?: number;
   facesWithClosedEyes?: number;
+  facesLookingAtCamera?: number; // coarse frontal-face heuristic, not a real gaze estimate
   faceScore?: number; // 0-100; neutral 100 when no faces detected
+  motionBlurRatio?: number; // directional gradient-energy imbalance; >>1 suggests directional (motion) blur
 
   hash?: bigint;
 
@@ -69,6 +95,67 @@ export interface PhotoResult {
   carouselPosition?: number; // 1-based; only set when the active style is Instagram
 
   tier?: Tier; // only set in 'triage' selection mode
+
+  isFavorite?: boolean; // user-controlled bookmark, independent of purpose/selection
+
+  orientation?: 'portrait' | 'landscape' | 'square';
+  colorStats?: { avgR: number; avgG: number; avgB: number; saturationMean: number; contrast: number };
+  emotionScores?: Partial<Record<EmotionKey, number>>; // face-api expression output, averaged across detected faces
+  semanticTags?: SemanticTag[]; // derived filter-matchable tags with confidence, see lib/semanticTags.ts
+}
+
+export type EmotionKey = 'happy' | 'sad' | 'angry' | 'surprised' | 'fearful' | 'disgusted' | 'neutral';
+
+/**
+ * Vocabulary of automatically-derived, locally-computable photo
+ * properties that the semantic filters and natural-language search can
+ * match against. Deliberately excludes anything that would need real
+ * scene/object recognition (sport type, specific gestures, branding,
+ * known people, ...) — there's no reliable local model for that here, and
+ * a confidence number would be invented rather than measured.
+ */
+export type SemanticTagKey =
+  | 'bw'
+  | 'color'
+  | 'vividColor'
+  | 'warmColor'
+  | 'coolColor'
+  | 'highContrast'
+  | 'lowContrast'
+  | 'bright'
+  | 'dark'
+  | 'lowLight'
+  | 'backlight'
+  | 'motionBlur'
+  | 'freezeMotion'
+  | 'sharp'
+  | 'verySharp'
+  | 'slightlySoft'
+  | 'blurry'
+  | 'overexposed'
+  | 'underexposed'
+  | 'eyesSharp'
+  | 'faceSharp'
+  | 'mainSubjectSharp'
+  | 'raw'
+  | 'jpeg'
+  | 'emotion'
+  | 'joy'
+  | 'sadness'
+  | 'surprise'
+  | 'anger'
+  | 'closedEyes'
+  | 'faceOccludedLikely'
+  | 'singlePerson'
+  | 'multiplePersons'
+  | 'crowdLikely'
+  | 'portraitLikely'
+  | 'groupPhotoLikely'
+  | 'uniqueInSeries';
+
+export interface SemanticTag {
+  key: SemanticTagKey;
+  confidence: number; // 0-1
 }
 
 export type SuggestionKind =
@@ -87,6 +174,12 @@ export type SuggestionKind =
   | 'kundeToneCurve'
   | 'videoDenoise'
   | 'videoSharpening'
+  | 'sportDehaze'
+  | 'sportCrop'
+  | 'eventWhiteBalance'
+  | 'eventToneCurve'
+  | 'presseToneCurve'
+  | 'presseSharpening'
   | 'defaultToneCurve';
 
 export interface LightroomSuggestion {
@@ -100,4 +193,34 @@ export type AppStep = 'upload' | 'config' | 'processing' | 'results';
 export interface ProcessingProgress {
   done: number;
   total: number;
+}
+
+/**
+ * Aggregated, anonymized numbers persisted per completed shoot so future
+ * runs can compare trends ("ist meine Schärfequote gestiegen?"). Contains
+ * no photos, previews, file names, or face data — just counts, rates, and
+ * averages — to stay inside the app's no-unnecessary-storage principle.
+ */
+export interface ShootingSnapshot {
+  id: string;
+  completedAt: number; // epoch ms
+  purpose: Purpose;
+  photoCount: number;
+  selectedCount: number;
+  selectionRate: number; // 0-1
+  groupCount: number;
+  avgGroupSize: number;
+  avgOverallScore: number;
+  avgSharpnessScore: number;
+  avgExposureScore: number;
+  portraitShare: number; // 0-1
+  landscapeShare: number;
+  bwShare: number;
+  colorShare: number;
+  closedEyesShare: number;
+  overexposedShare: number;
+  underexposedShare: number;
+  motionBlurShare: number;
+  emotionShare: number; // share of photos with a detected strong emotion
+  focalLengthBuckets: Record<string, { count: number; avgSharpnessScore: number }>;
 }

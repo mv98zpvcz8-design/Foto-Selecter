@@ -71,6 +71,15 @@ export function PhotoCard({ photo, allPhotos, index }: { photo: PhotoResult; all
             {photo.overallScore}
           </button>
         )}
+        <button
+          type="button"
+          className={`favorite-btn${photo.isFavorite ? ' active' : ''}`}
+          title={t('photo.toggleFavorite')}
+          aria-label={t('photo.toggleFavorite')}
+          onClick={() => dispatch({ type: 'TOGGLE_FAVORITE', id: photo.id })}
+        >
+          {photo.isFavorite ? '★' : '☆'}
+        </button>
         {(photo.facesWithClosedEyes ?? 0) > 0 && (
           <span className="eyes-closed-badge">{t('photo.eyesClosedBadge')}</span>
         )}

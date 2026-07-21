@@ -5,7 +5,7 @@ Lokale React-Web-App zum Aussortieren von RAW- und JPEG-Fotos. Läuft komplett c
 ## Ablauf
 
 1. **Upload** — RAW-Dateien (`.CR2`, `.CR3`, `.NEF`, `.ARW`, `.RAF`, `.DNG`) oder JPEGs per Drag & Drop oder Dateiauswahl hinzufügen.
-2. **Einstellungen** — Verwendungszweck (Instagram / Kunde / Portfolio / Video-Frame-Auswahl / Sonstiges) sowie den Auswahl-Modus festlegen:
+2. **Einstellungen** — Verwendungszweck/Auswahlprofil (Instagram / Kunde / Portfolio / Action-Serie / Presse / Event / Sport / Favoriten / Sonstiges) sowie den Auswahl-Modus festlegen:
    - **Zielanzahl**: eine feste Anzahl Fotos wird vorgeschlagen.
    - **Sichtung/Triage**: der ganze Batch wird ohne feste Zielzahl in "Bearbeiten" / "Hat Potenzial" / "Nicht empfohlen" eingestuft — gedacht für die Sichtung eines kompletten Shootings vor dem eigentlichen Editing.
    Eigene **Kunden-Presets** mit individuellen Scoring-Gewichtungen lassen sich speichern und wiederverwenden.
@@ -29,6 +29,33 @@ Browser können RAW-Sensordaten nicht dekodieren. Die App extrahiert daher das i
 
 Die App lässt sich über den Browser installieren (z. B. "Zum Startbildschirm hinzufügen") und danach komplett offline nutzen — App-Shell, Styles und die Gesichtserkennungs-Modelle werden von einem Service Worker vorab zwischengespeichert. Praktisch für den Einsatz direkt am Shooting-Ort ohne WLAN. Beim ersten Laden mit Internetverbindung muss die App einmal vollständig geöffnet werden, damit der Service Worker installieren und alles cachen kann.
 
+## Semantische Filter je Auswahlprofil
+
+Jedes Auswahlprofil (Kunde, Instagram, Portfolio, Action-Serie, Presse, Event, Sport, Favoriten, Sonstiges) hat in der Ergebnisansicht eine eigene, kuratierte Filterleiste — Filter sind kein globales, profilunabhängiges Panel, sondern gehören zum jeweils aktiven Profil. Filter lassen sich per Klick kombinieren (UND/ODER umschaltbar), zeigen die Trefferanzahl je Chip, und lassen sich einzeln oder komplett zurücksetzen. Eine natürliche Suchleiste ("zeige scharfe Schwarz-Weiß-Bilder") übersetzt die Eingabe über eine feste Stichwort-Zuordnung (kein Sprachmodell) in die passenden Filter-Chips des aktiven Profils; nicht erkannte Wörter werden ehrlich als "nicht erkannt" angezeigt statt ignoriert.
+
+Alle Filter basieren auf tatsächlich lokal gemessenen Signalen:
+
+- **Farbe/Stil**: Schwarz-Weiß/Farbe (Sättigung), starke Farben, warme/kalte Farbgebung, hoher/niedriger Kontrast, hell/dunkel, Low-Light, Gegenlicht, Bewegungsunschärfe/Freeze Motion (gerichtete Gradient-Energie-Analyse)
+- **Technisch**: Schärfegrade, über-/unterbelichtet, Augen/Gesicht/Hauptmotiv scharf, keine geschlossenen Augen, Hoch-/Quer-/Quadratformat, RAW/JPEG, einzigartiges Motiv (keine große Serie)
+- **Personen & Emotion**: Emotion/Freude/Trauer/Überraschung/Aggression (Gesichtsausdruck-Modell), Einzelperson/mehrere Personen, Publikum/Porträt/Gruppenfoto (grobe Heuristik aus Gesichtsanzahl/-größe)
+- **Score**: hoher Score im aktuell aktiven Profil, nur Favoriten
+
+Bewusst **nicht** enthalten sind Filter, die echte Objekt-/Szenen-Erkennung bräuchten (Sportart, Ball sichtbar, Bühne, Sponsoren-Branding, bekannte Personen, spezifische Gesten wie Jubel/Zweikampf) — dafür gibt es hier kein zuverlässiges, lokal laufendes Modell, und erfundene Confidence-Werte wären irreführend.
+
+## Shot Analytics & Shooting-Resümee
+
+Über den Button "Shot Analytics" in der Ergebnisansicht öffnet sich eine Analyse-Seite mit:
+
+- Grundlegenden Kennzahlen (Anzahl, Auswahlquote, Serien, Durchschnitts-Scores, Format-/Farbanteile)
+- Technischer Analyse nach Brennweite/ISO/Objektiv (nur Buckets mit ausreichend Bildern, mind. 3)
+- Gated Erkenntnissen ("Bei 200mm waren X% der Bilder unscharf") — nur wenn die Differenz zum Durchschnitt deutlich genug ist
+- Bestenlisten je Kategorie (technisch stärkste, emotionalste, Publikums-, Action-, Schwarz-Weiß-Bilder), die direkt in eine gefilterte Profilansicht springen
+- Einem regelbasierten **Shooting-Resümee** (Gesamtfazit, Stärken, Schwächen, bis zu drei priorisierte Übungsfelder, Vergleich zu früheren Shootings) — komplett aus den oben berechneten Kennzahlen zusammengesetzt, ohne Sprachmodell; jede Aussage ist auf eine Kennzahl zurückführbar und nur bei ausreichender Datenlage sichtbar
+
+Für den Vergleich zu früheren Shootings speichert die App **ausschließlich aggregierte Kennzahlen** (Zähler, Anteile, Durchschnittswerte) pro abgeschlossenem Durchgang in einer eigenen IndexedDB — nie Fotos, Vorschaubilder oder Gesichtsdaten. Ein "Shooting-Verlauf löschen"-Button auf der Analytics-Seite entfernt diesen Verlauf vollständig und sofort.
+
+**Wichtige methodische Einschränkung**: Der Schärfe-Score wird pro Batch perzentil-normalisiert (relativ zum eigenen 5./95. Perzentil dieses Durchgangs) — zwei Shootings mit demselben Schärfe-Score-Durchschnitt sind dadurch nicht zwangsläufig absolut gleich scharf. Deshalb vergleicht das Resümee bewusst **keinen** Schärfe-Trend über mehrere Shootings hinweg (nur Belichtung, Emotion-Anteil und Hochformat-Anteil, die auf festen/absoluten Maßstäben beruhen).
+
 ## Entwicklung
 
 ```bash
@@ -48,3 +75,9 @@ npm run lint     # oxlint
 - Web-Worker-Parallelisierung setzt `Worker`, `OffscreenCanvas` und `createImageBitmap` voraus; fehlt eines davon (ältere Browser), fällt die App automatisch auf die langsamere Einzelthread-Analyse zurück — funktional identisch, nur ohne Parallelisierung.
 - Offline-Fähigkeit (Service Worker/Workbox-Precaching inkl. Modell-Dateien) wurde lokal per Playwright verifiziert (Laden, Offline schalten, Reload, App-Shell + Modelle weiterhin aus dem Cache erreichbar). Verhalten bei App-Updates (neue Version verfügbar, während alte Version offline geöffnet ist) sowie plattformspezifisches Installationsverhalten (iOS/Android/Desktop) wurden nicht in einer echten Hosting-Umgebung getestet.
 - Auto-Speicherung/Wiederherstellung liegt in IndexedDB im Browser desselben Geräts/Profils; bei privatem/inkognito Modus oder gelöschten Browserdaten geht der Zwischenstand verloren.
+- Die semantischen Filter/Bestenlisten decken bewusst nur real messbare Signale ab (Farbe, Kontrast, Schärfe, Belichtung, Gesichtsausdruck, grobe Gesichtsanzahl-Heuristiken). Motiv-/Szenen-spezifische Filter aus der ursprünglichen Anfrage (Fußball, Judo, Bühne, Jubel, Zweikampf, Sponsoren-Branding, bekannte Personen …) sind **nicht implementiert**, da dafür ein echtes, lokal laufendes Objekt-/Szenen-Erkennungsmodell nötig wäre, das es hier nicht gibt — diese Filter zu erfinden hätte falsche Confidence-Werte bedeutet.
+- Die Blickkontakt-Heuristik ("facesLookingAtCamera") ist eine grobe geometrische Symmetrie-Prüfung der Augen-Landmarks, keine echte Kopfpose-/Blickrichtungs-Schätzung — bei Profilaufnahmen oder ungewöhnlichen Kamerawinkeln kann sie danebenliegen.
+- Die Bewegungsunschärfe-Erkennung vergleicht horizontale vs. vertikale Gradienten-Energie und erkennt damit *gerichtete* Unschärfe recht zuverlässig (mit synthetischen Bildern verifiziert), kann aber bei Motiven mit stark gerichteter Eigentextur (Jalousien, Zäune, Architektur-Linien) falsch anschlagen, da diese ebenfalls ein Energie-Ungleichgewicht erzeugen.
+- Shot Analytics/Resümee: Die "Vergleich zu früheren Shootings"-Funktion vergleicht bewusst nur Belichtung, Emotionsanteil und Hochformat-Anteil über Shootings hinweg (siehe Abschnitt oben) — **nicht** die Schärfequote, weil diese pro Batch perzentil-normalisiert und daher nicht absolut vergleichbar ist. Die Auswahlquote wird ebenfalls nicht über Shootings verglichen, da sie im Zielanzahl-Modus nur die vom Nutzer eingegebene Zahl widerspiegelt, keine Qualitätsaussage.
+- "Top-Bilder für Kunde/Instagram/Portfolio" in Shot Analytics basieren auf dem Score des **aktuell aktiven** Profils — es gibt noch keinen separaten, gleichzeitig berechneten Instagram-/Kunden-/Portfolio-Score (das ist erst mit einem künftigen "Instagram Coach"-Modul geplant). Für eine andere Gewichtung Profil wechseln und neu analysieren.
+- Alle neuen Module (Filter, Shot Analytics, Résumé) wurden mit synthetischen Testbildern per Playwright end-to-end verifiziert (inkl. Mehrfach-Shootings zur Verlaufs-/Vergleichsprüfung), nicht mit echten Fotos/Gesichtern aus einem realen Shooting.

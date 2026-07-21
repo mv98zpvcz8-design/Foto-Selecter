@@ -10,6 +10,7 @@ import { RestoreSessionDialog } from './components/RestoreSessionDialog';
 import { runPipeline, type CancelToken } from './lib/pipeline';
 import { resolveStyleHint, resolveWeights } from './lib/profiles';
 import { clearSession, loadSession, type SessionSnapshot } from './lib/persistence';
+import { buildShootingSnapshot, saveShootingSnapshot } from './lib/shootingHistory';
 import type { AppStep, SelectionConfig } from './types';
 
 const STEP_ORDER: AppStep[] = ['upload', 'config', 'processing', 'results'];
@@ -115,7 +116,14 @@ function AppContent() {
       },
       token,
     ).then((result) => {
-      if (!token.cancelled) dispatch({ type: 'SET_RESULTS', photos: result });
+      if (token.cancelled) return;
+      dispatch({ type: 'SET_RESULTS', photos: result });
+      const analyzed = result.filter((p) => p.status === 'done');
+      if (analyzed.length > 0) {
+        const snapshot = buildShootingSnapshot(analyzed, styleHint);
+        dispatch({ type: 'SET_CURRENT_SNAPSHOT_ID', id: snapshot.id });
+        saveShootingSnapshot(snapshot);
+      }
     });
   }, [state.step, state.photos, state.profileRef, state.customPresets, state.selectionMode, state.targetCount, dispatch]);
 

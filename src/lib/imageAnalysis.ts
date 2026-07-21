@@ -1,5 +1,15 @@
 import { ERR_CANVAS_UNAVAILABLE, ERR_IMAGE_LOAD } from './errorCodes';
-import { ANALYSIS_MAX_DIM, TILE_GRID, exposureStats, laplacianVariance, rgbaToGrayscale, tileSharpness } from './pixelMath';
+import {
+  ANALYSIS_MAX_DIM,
+  TILE_GRID,
+  colorStats,
+  directionalGradientEnergy,
+  exposureStats,
+  laplacianVariance,
+  rgbaToGrayscale,
+  tileSharpness,
+  type ColorStats,
+} from './pixelMath';
 
 export interface Rect {
   x: number;
@@ -14,6 +24,8 @@ export interface RawAnalysis {
   shadowClipping: number; // fraction of pixels near-black (0-1)
   highlightClipping: number; // fraction of pixels near-white (0-1)
   meanLuminance: number; // 0-255
+  colorStats: ColorStats;
+  motionBlurRatio: number;
 }
 
 /**
@@ -34,11 +46,25 @@ export async function analyzeImage(url: string): Promise<RawAnalysis> {
   const sharpnessRaw = laplacianVariance(gray.data, gray.width, gray.height);
   const tileSharpnessRaw = tileSharpness(gray.data, gray.width, gray.height, TILE_GRID);
   const { shadowClipping, highlightClipping, meanLuminance } = exposureStats(gray.data);
-  return { sharpnessRaw, tileSharpnessRaw, shadowClipping, highlightClipping, meanLuminance };
+  const colors = colorStats(gray.rgba, gray.data);
+  const gradientEnergy = directionalGradientEnergy(gray.data, gray.width, gray.height);
+  const motionBlurRatio =
+    Math.max(gradientEnergy.horizontal, gradientEnergy.vertical) /
+    Math.max(Math.min(gradientEnergy.horizontal, gradientEnergy.vertical), 1e-6);
+  return {
+    sharpnessRaw,
+    tileSharpnessRaw,
+    shadowClipping,
+    highlightClipping,
+    meanLuminance,
+    colorStats: colors,
+    motionBlurRatio,
+  };
 }
 
 interface GrayscaleData {
   data: Float32Array;
+  rgba: Uint8ClampedArray;
   width: number;
   height: number;
 }
@@ -73,7 +99,7 @@ function grayscaleFromElement(img: HTMLImageElement, sourceRect?: Rect, maxDim =
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
   const { data } = ctx.getImageData(0, 0, width, height);
 
-  return { data: rgbaToGrayscale(data), width, height };
+  return { data: rgbaToGrayscale(data), rgba: data, width, height };
 }
 
 /**

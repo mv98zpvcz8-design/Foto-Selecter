@@ -93,6 +93,90 @@ export function exposureStats(gray: Float32Array): {
   };
 }
 
+/**
+ * Directional gradient energy: horizontal motion blur smears vertical
+ * edges, lowering the horizontal-difference energy while leaving
+ * vertical-difference energy comparatively intact (and vice versa for
+ * vertical blur). A strong imbalance between the two is evidence of
+ * directional (motion) blur; comparable, high energy in both directions
+ * means the frame is crisp with no direction-dependent smear. This is a
+ * coarse proxy, not true motion-blur deconvolution.
+ */
+export function directionalGradientEnergy(
+  gray: Float32Array,
+  width: number,
+  height: number,
+): { horizontal: number; vertical: number } {
+  if (width < 2 || height < 2) return { horizontal: 0, vertical: 0 };
+  let hSum = 0;
+  let vSum = 0;
+  let n = 0;
+  for (let y = 0; y < height - 1; y++) {
+    for (let x = 0; x < width - 1; x++) {
+      const idx = y * width + x;
+      const dx = gray[idx + 1] - gray[idx];
+      const dy = gray[idx + width] - gray[idx];
+      hSum += dx * dx;
+      vSum += dy * dy;
+      n++;
+    }
+  }
+  return { horizontal: n ? hSum / n : 0, vertical: n ? vSum / n : 0 };
+}
+
+export interface ColorStats {
+  avgR: number;
+  avgG: number;
+  avgB: number;
+  saturationMean: number; // 0-1, mean HSV saturation across all pixels
+  contrast: number; // stdev of luminance (0-255 scale)
+}
+
+/**
+ * Color/contrast signals used by the semantic filters (black & white vs.
+ * color, warm/cool, high/low contrast, vivid color). Computed on the same
+ * downscaled frame already used for sharpness, so no extra image decode
+ * is needed.
+ */
+export function colorStats(data: Uint8ClampedArray | Uint8Array, gray: Float32Array): ColorStats {
+  const n = gray.length;
+  if (n === 0) return { avgR: 0, avgG: 0, avgB: 0, saturationMean: 0, contrast: 0 };
+
+  let sumR = 0;
+  let sumG = 0;
+  let sumB = 0;
+  let sumSat = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    sumR += r;
+    sumG += g;
+    sumB += b;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    sumSat += max === 0 ? 0 : (max - min) / max;
+  }
+
+  let meanLum = 0;
+  for (let i = 0; i < n; i++) meanLum += gray[i];
+  meanLum /= n;
+
+  let varSum = 0;
+  for (let i = 0; i < n; i++) {
+    const d = gray[i] - meanLum;
+    varSum += d * d;
+  }
+
+  return {
+    avgR: sumR / n,
+    avgG: sumG / n,
+    avgB: sumB / n,
+    saturationMean: sumSat / n,
+    contrast: Math.sqrt(varSum / n),
+  };
+}
+
 /** Assumes `gray` is already sized HASH_WIDTH x HASH_HEIGHT. */
 export function dHashFromGrayscale(gray: Float32Array): bigint {
   let hash = 0n;

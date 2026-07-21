@@ -1,11 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { PhotoCard } from './PhotoCard';
 import { CarouselSection } from './CarouselSection';
+import { FilterPanel } from './FilterPanel';
+import { AnalyticsScreen } from './AnalyticsScreen';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 import { TIER_EDIT_THRESHOLD, TIER_POTENTIAL_THRESHOLD, tierForScore } from '../lib/scoring';
+import { matchesActiveFilters } from '../lib/filters';
 import type { PhotoResult, Tier } from '../types';
 
 function TierSection({
@@ -39,27 +42,34 @@ export function ResultsScreen() {
   const t = useT();
   const { photos, showAll } = state;
   const isTriage = state.selectionMode === 'triage';
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const profileDisplayName =
     state.profileRef.kind === 'builtin'
       ? t(`purpose.${state.profileRef.purpose}`)
       : resolveCustomPreset(state.profileRef, state.customPresets)?.name ?? t('purpose.sonstiges');
 
+  const purpose = resolveStyleHint(state.profileRef, state.customPresets);
+
   const donePhotos = useMemo(() => photos.filter((p) => p.status === 'done'), [photos]);
   const errorPhotos = useMemo(() => photos.filter((p) => p.status === 'error'), [photos]);
   const preselected = useMemo(() => donePhotos.filter((p) => p.isPreselected), [donePhotos]);
   const selectedCount = useMemo(() => photos.filter((p) => p.isSelected).length, [photos]);
 
-  const isInstagram = resolveStyleHint(state.profileRef, state.customPresets) === 'instagram';
+  const isInstagram = purpose === 'instagram';
   const carouselPhotos = useMemo(
     () => preselected.filter((p) => p.carouselPosition != null),
     [preselected],
   );
 
   const visiblePhotos = showAll ? donePhotos : preselected;
+  const filteredVisible = useMemo(
+    () => visiblePhotos.filter((p) => matchesActiveFilters(p, state.activeFilterKeys, state.filterCombineMode)),
+    [visiblePhotos, state.activeFilterKeys, state.filterCombineMode],
+  );
   const sortedVisible = useMemo(
-    () => [...visiblePhotos].sort((a, b) => (b.overallScore ?? 0) - (a.overallScore ?? 0)),
-    [visiblePhotos],
+    () => [...filteredVisible].sort((a, b) => (b.overallScore ?? 0) - (a.overallScore ?? 0)),
+    [filteredVisible],
   );
 
   const tierBuckets = useMemo(() => {
@@ -127,6 +137,13 @@ export function ResultsScreen() {
           </button>
           <button
             type="button"
+            className={`btn btn-sm${showAnalytics ? ' btn-primary' : ' btn-ghost'}`}
+            onClick={() => setShowAnalytics((v) => !v)}
+          >
+            {t('analytics.toggle')}
+          </button>
+          <button
+            type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => dispatch({ type: 'GO_TO_STEP', step: 'config' })}
           >
@@ -138,51 +155,63 @@ export function ResultsScreen() {
         </div>
       </div>
 
-      {isInstagram && carouselPhotos.length > 0 && <CarouselSection photos={carouselPhotos} />}
-
-      {isTriage ? (
-        sortedVisible.length === 0 ? (
-          <div className="empty-state">{t('results.empty')}</div>
-        ) : (
-          <>
-            <TierSection
-              titleKey="results.tierEdit"
-              descKey="results.tierEdit.desc"
-              descVars={{ threshold: TIER_EDIT_THRESHOLD }}
-              photos={tierBuckets.edit}
-            />
-            <TierSection
-              titleKey="results.tierPotential"
-              descKey="results.tierPotential.desc"
-              descVars={{ lower: TIER_POTENTIAL_THRESHOLD, upper: TIER_EDIT_THRESHOLD - 1 }}
-              photos={tierBuckets.potential}
-            />
-            <TierSection
-              titleKey="results.tierSkip"
-              descKey="results.tierSkip.desc"
-              descVars={{ threshold: TIER_POTENTIAL_THRESHOLD }}
-              photos={tierBuckets.skip}
-            />
-          </>
-        )
-      ) : sortedVisible.length === 0 ? (
-        <div className="empty-state">{t('results.empty')}</div>
+      {showAnalytics ? (
+        <AnalyticsScreen photos={donePhotos} purpose={purpose} />
       ) : (
-        <div className="photo-grid">
-          {sortedVisible.map((p, i) => (
-            <PhotoCard key={p.id} photo={p} allPhotos={sortedVisible} index={i} />
-          ))}
-        </div>
-      )}
-
-      {errorPhotos.length > 0 && (
         <>
-          <div className="section-heading">{t('results.errorSection', { count: errorPhotos.length })}</div>
-          <div className="photo-grid">
-            {errorPhotos.map((p, i) => (
-              <PhotoCard key={p.id} photo={p} allPhotos={errorPhotos} index={i} />
-            ))}
-          </div>
+          <FilterPanel photos={visiblePhotos} purpose={purpose} />
+
+          {isInstagram && carouselPhotos.length > 0 && <CarouselSection photos={carouselPhotos} />}
+
+          {isTriage ? (
+            sortedVisible.length === 0 ? (
+              <div className="empty-state">
+                {t(visiblePhotos.length > 0 ? 'results.emptyFiltered' : 'results.empty')}
+              </div>
+            ) : (
+              <>
+                <TierSection
+                  titleKey="results.tierEdit"
+                  descKey="results.tierEdit.desc"
+                  descVars={{ threshold: TIER_EDIT_THRESHOLD }}
+                  photos={tierBuckets.edit}
+                />
+                <TierSection
+                  titleKey="results.tierPotential"
+                  descKey="results.tierPotential.desc"
+                  descVars={{ lower: TIER_POTENTIAL_THRESHOLD, upper: TIER_EDIT_THRESHOLD - 1 }}
+                  photos={tierBuckets.potential}
+                />
+                <TierSection
+                  titleKey="results.tierSkip"
+                  descKey="results.tierSkip.desc"
+                  descVars={{ threshold: TIER_POTENTIAL_THRESHOLD }}
+                  photos={tierBuckets.skip}
+                />
+              </>
+            )
+          ) : sortedVisible.length === 0 ? (
+            <div className="empty-state">
+              {t(visiblePhotos.length > 0 ? 'results.emptyFiltered' : 'results.empty')}
+            </div>
+          ) : (
+            <div className="photo-grid">
+              {sortedVisible.map((p, i) => (
+                <PhotoCard key={p.id} photo={p} allPhotos={sortedVisible} index={i} />
+              ))}
+            </div>
+          )}
+
+          {errorPhotos.length > 0 && (
+            <>
+              <div className="section-heading">{t('results.errorSection', { count: errorPhotos.length })}</div>
+              <div className="photo-grid">
+                {errorPhotos.map((p, i) => (
+                  <PhotoCard key={p.id} photo={p} allPhotos={errorPhotos} index={i} />
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

@@ -5,7 +5,7 @@ export interface ScoreNote {
   vars?: Record<string, string | number>;
 }
 
-const EXCELLENCE_THRESHOLD = 92;
+export const EXCELLENCE_THRESHOLD = 92;
 const DIMENSION_EXCELLENCE_THRESHOLD = 95;
 const POTENTIAL_STRONG_THRESHOLD = 85;
 const POTENTIAL_WEAK_THRESHOLD = 70;

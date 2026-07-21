@@ -7,6 +7,7 @@ import { analyzeInWorker, isWorkerAnalysisSupported, type WorkerAnalysisResult }
 import { scorePhotos, selectTopN, selectTriage } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
 import { assignCarouselPositions } from './carousel';
+import { deriveSemanticTags } from './semanticTags';
 import {
   ERR_CANVAS_UNAVAILABLE,
   ERR_IMAGE_LOAD,
@@ -123,13 +124,27 @@ export async function runPipeline(
 
       photo.captureTime = meta.captureTime;
       photo.camera = meta.camera;
+      photo.lens = meta.lens;
+      photo.focalLengthMm = meta.focalLengthMm;
+      photo.iso = meta.iso;
+      photo.shutterSpeedSec = meta.shutterSpeedSec;
+      photo.aperture = meta.aperture;
       photo.sharpnessRaw = analysis.sharpnessRaw;
       photo.shadowClipping = analysis.shadowClipping;
       photo.highlightClipping = analysis.highlightClipping;
       photo.meanLuminance = analysis.meanLuminance;
       photo.hash = analysis.hash;
+      photo.colorStats = analysis.colorStats;
+      photo.motionBlurRatio = analysis.motionBlurRatio;
       photo.facesDetected = faces.facesDetected;
       photo.facesWithClosedEyes = faces.facesWithClosedEyes;
+      photo.facesLookingAtCamera = faces.facesLookingAtCamera;
+      photo.emotionScores = faces.emotionScores;
+
+      if (preview.width && preview.height) {
+        photo.orientation =
+          preview.width === preview.height ? 'square' : preview.width > preview.height ? 'landscape' : 'portrait';
+      }
 
       const subjectSharpnessRaw = faces.subjectSharpnessRaw ?? tileBasedSubjectSharpness(analysis.tileSharpnessRaw);
       photo.subjectSharpnessRaw = subjectSharpnessRaw;
@@ -166,6 +181,8 @@ export async function runPipeline(
   }
 
   for (const photo of photos) {
+    if (photo.status !== 'done') continue;
+    photo.semanticTags = deriveSemanticTags(photo);
     if (photo.isPreselected) {
       photo.lightroomSuggestions = generateLightroomSuggestions(photo, styleHint);
     }

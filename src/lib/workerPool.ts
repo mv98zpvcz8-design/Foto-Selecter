@@ -1,3 +1,5 @@
+import type { ColorStats } from './pixelMath';
+
 export interface WorkerAnalysisResult {
   sharpnessRaw: number;
   tileSharpnessRaw: number[];
@@ -5,6 +7,8 @@ export interface WorkerAnalysisResult {
   highlightClipping: number;
   meanLuminance: number;
   hash: bigint;
+  colorStats: ColorStats;
+  motionBlurRatio: number;
 }
 
 interface PendingJob {

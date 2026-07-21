@@ -3,11 +3,14 @@ import {
   HASH_HEIGHT,
   HASH_WIDTH,
   TILE_GRID,
+  colorStats,
   dHashFromGrayscale,
+  directionalGradientEnergy,
   exposureStats,
   laplacianVariance,
   rgbaToGrayscale,
   tileSharpness,
+  type ColorStats,
 } from '../lib/pixelMath';
 
 interface AnalysisJob {
@@ -23,6 +26,8 @@ interface AnalysisSuccess {
   highlightClipping: number;
   meanLuminance: number;
   hash: bigint;
+  colorStats: ColorStats;
+  motionBlurRatio: number;
 }
 
 interface AnalysisFailure {
@@ -57,6 +62,11 @@ self.onmessage = async (e: MessageEvent<AnalysisJob>) => {
     const sharpnessRaw = laplacianVariance(gray, width, height);
     const tileSharpnessRaw = tileSharpness(gray, width, height, TILE_GRID);
     const { shadowClipping, highlightClipping, meanLuminance } = exposureStats(gray);
+    const colors = colorStats(data, gray);
+    const gradientEnergy = directionalGradientEnergy(gray, width, height);
+    const motionBlurRatio =
+      Math.max(gradientEnergy.horizontal, gradientEnergy.vertical) /
+      Math.max(Math.min(gradientEnergy.horizontal, gradientEnergy.vertical), 1e-6);
 
     const hashCanvas = new OffscreenCanvas(HASH_WIDTH, HASH_HEIGHT);
     const hashCtx = hashCanvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D;
@@ -66,7 +76,17 @@ self.onmessage = async (e: MessageEvent<AnalysisJob>) => {
 
     bitmap.close();
 
-    const result: AnalysisSuccess = { id, sharpnessRaw, tileSharpnessRaw, shadowClipping, highlightClipping, meanLuminance, hash };
+    const result: AnalysisSuccess = {
+      id,
+      sharpnessRaw,
+      tileSharpnessRaw,
+      shadowClipping,
+      highlightClipping,
+      meanLuminance,
+      hash,
+      colorStats: colors,
+      motionBlurRatio,
+    };
     (self as unknown as Worker).postMessage(result);
   } catch (err) {
     const failure: AnalysisFailure = { id, error: err instanceof Error ? err.message : String(err) };
