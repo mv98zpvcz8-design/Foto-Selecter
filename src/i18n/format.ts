@@ -6,6 +6,10 @@ type T = (key: string, vars?: Record<string, string | number>) => string;
 export function formatReasoning(info: ReasoningInfo, t: T): string {
   const parts = [t(`reasoning.sharpness.${info.sharpness}`), t(`reasoning.exposure.${info.exposure}`)];
 
+  if (info.selectiveFocus) {
+    parts.push(t('reasoning.selectiveFocus'));
+  }
+
   if ((info.groupSize ?? 1) > 1) {
     if (info.groupRank === 1) {
       parts.push(t('reasoning.groupBest', { size: info.groupSize ?? 1 }));

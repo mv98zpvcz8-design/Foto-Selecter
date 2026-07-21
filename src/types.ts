@@ -34,7 +34,9 @@ export interface PhotoResult {
   captureTime?: Date | null;
   camera?: string;
 
-  sharpnessRaw?: number;
+  sharpnessRaw?: number; // whole-frame Laplacian variance
+  subjectSharpnessRaw?: number; // sharpest local region (face, or a tile far above the frame's median) — catches shallow-DOF/bokeh
+  selectiveFocusDetected?: boolean; // subjectSharpnessRaw meaningfully exceeds sharpnessRaw: likely deliberate, not accidental blur
   sharpnessScore?: number; // 0-100, normalized across the batch
   exposureScore?: number; // 0-100
   shadowClipping?: number; // fraction 0-1

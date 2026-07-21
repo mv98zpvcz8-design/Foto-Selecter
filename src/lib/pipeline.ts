@@ -26,6 +26,25 @@ export interface CancelToken {
   cancelled: boolean;
 }
 
+/**
+ * Fallback selective-focus signal when no face was detected: if one tile
+ * of the 3x3 grid is far sharper than the frame's median tile (e.g. a
+ * product/macro shot with a deliberately soft background), treat that as
+ * evidence of intentional selective focus rather than accidental blur.
+ * Discounted relative to a confirmed face match since it's weaker
+ * evidence (could just be a sharp edge/highlight, not a real subject).
+ */
+function tileBasedSubjectSharpness(tileSharpnessRaw: number[]): number | undefined {
+  if (tileSharpnessRaw.length < 4) return undefined;
+  const sorted = [...tileSharpnessRaw].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  const max = sorted[sorted.length - 1];
+  if (median > 0 && max > median * 3) {
+    return max * 0.7;
+  }
+  return undefined;
+}
+
 function yieldToUi(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
@@ -91,6 +110,11 @@ export async function runPipeline(
       photo.hash = hash;
       photo.facesDetected = faces.facesDetected;
       photo.facesWithClosedEyes = faces.facesWithClosedEyes;
+
+      const subjectSharpnessRaw = faces.subjectSharpnessRaw ?? tileBasedSubjectSharpness(analysis.tileSharpnessRaw);
+      photo.subjectSharpnessRaw = subjectSharpnessRaw;
+      photo.selectiveFocusDetected = subjectSharpnessRaw != null && subjectSharpnessRaw > analysis.sharpnessRaw * 1.3;
+
       photo.status = 'done';
     } catch (err) {
       photo.status = 'error';

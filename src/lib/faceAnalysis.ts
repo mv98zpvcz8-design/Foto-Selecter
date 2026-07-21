@@ -1,12 +1,16 @@
 import type * as FaceApiNs from '@vladmandic/face-api';
 import { ERR_IMAGE_LOAD } from './errorCodes';
+import { sharpnessOfRegion } from './imageAnalysis';
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models`;
 const EYE_CLOSED_THRESHOLD = 0.2; // eye-aspect-ratio below this = eyes considered closed
+const FACE_BOX_PADDING = 0.25; // include some context around the face, not just eyes/nose
 
 export interface FaceAnalysis {
   facesDetected: number;
   facesWithClosedEyes: number;
+  /** Sharpest detected face region, for telling intentional shallow-DOF portraits from accidental blur. */
+  subjectSharpnessRaw?: number;
 }
 
 let modelsLoaded: Promise<typeof FaceApiNs> | null = null;
@@ -32,10 +36,12 @@ export function ensureFaceModelsLoaded(): Promise<typeof FaceApiNs> {
 }
 
 /**
- * Detects faces in the preview image and flags how many have (probably)
- * closed eyes, using the classic eye-aspect-ratio (EAR) technique from
- * blink-detection literature: EAR collapses sharply when an eye shuts,
- * regardless of face size or camera angle.
+ * Detects faces in the preview image, flags how many have (probably)
+ * closed eyes using the classic eye-aspect-ratio (EAR) technique from
+ * blink-detection literature, and measures how sharp the sharpest face
+ * region is — a face that's crisp even when the rest of the frame is
+ * soft means the photographer chose a shallow depth of field, not that
+ * they missed focus.
  */
 export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
   const faceapi = await ensureFaceModelsLoaded();
@@ -46,13 +52,24 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
     .withFaceLandmarks(true);
 
   let closed = 0;
+  let subjectSharpnessRaw: number | undefined;
   for (const detection of detections) {
     const leftEar = eyeAspectRatio(detection.landmarks.getLeftEye());
     const rightEar = eyeAspectRatio(detection.landmarks.getRightEye());
     if ((leftEar + rightEar) / 2 < EYE_CLOSED_THRESHOLD) closed++;
+
+    const box = detection.detection.box;
+    const padX = box.width * FACE_BOX_PADDING;
+    const padY = box.height * FACE_BOX_PADDING;
+    const x = Math.max(0, box.x - padX);
+    const y = Math.max(0, box.y - padY);
+    const width = Math.min(img.naturalWidth - x, box.width + padX * 2);
+    const height = Math.min(img.naturalHeight - y, box.height + padY * 2);
+    const regionSharpness = sharpnessOfRegion(img, { x, y, width, height });
+    subjectSharpnessRaw = Math.max(subjectSharpnessRaw ?? 0, regionSharpness);
   }
 
-  return { facesDetected: detections.length, facesWithClosedEyes: closed };
+  return { facesDetected: detections.length, facesWithClosedEyes: closed, subjectSharpnessRaw };
 }
 
 function eyeAspectRatio(eye: FaceApiNs.Point[]): number {

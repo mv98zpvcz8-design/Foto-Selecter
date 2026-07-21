@@ -4,10 +4,20 @@ import type { PhotoResult, WeightProfile } from '../types';
 const IDEAL_LUMINANCE_MIN = 80;
 const IDEAL_LUMINANCE_MAX = 190;
 
+/**
+ * The higher of the whole-frame sharpness and the detected subject/tile
+ * sharpness: a face or focal point that's crisp counts fully even if the
+ * rest of the frame is deliberately soft (shallow DOF / bokeh), so
+ * intentional selective focus doesn't get scored as accidental blur.
+ */
+function effectiveSharpnessRaw(photo: PhotoResult): number {
+  return Math.max(photo.sharpnessRaw ?? 0, photo.subjectSharpnessRaw ?? 0);
+}
+
 function normalizeSharpnessScores(photos: PhotoResult[]): void {
   const values = photos
     .filter((p) => p.status === 'done' && p.sharpnessRaw != null)
-    .map((p) => p.sharpnessRaw as number)
+    .map((p) => effectiveSharpnessRaw(p))
     .sort((a, b) => a - b);
 
   if (values.length === 0) return;
@@ -18,7 +28,7 @@ function normalizeSharpnessScores(photos: PhotoResult[]): void {
 
   for (const photo of photos) {
     if (photo.status !== 'done' || photo.sharpnessRaw == null) continue;
-    const normalized = ((photo.sharpnessRaw - p05) / range) * 100;
+    const normalized = ((effectiveSharpnessRaw(photo) - p05) / range) * 100;
     photo.sharpnessScore = clamp(Math.round(normalized), 0, 100);
   }
 }

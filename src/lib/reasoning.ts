@@ -6,6 +6,7 @@ export type ExposureLevel = 'good' | 'acceptable' | 'underexposed' | 'overexpose
 export interface ReasoningInfo {
   sharpness: SharpnessLevel;
   exposure: ExposureLevel;
+  selectiveFocus: boolean;
   groupRank?: number;
   groupSize?: number;
   facesDetected?: number;
@@ -28,6 +29,7 @@ export function classifyReasoning(photo: PhotoResult): ReasoningInfo {
   return {
     sharpness,
     exposure,
+    selectiveFocus: !!photo.selectiveFocusDetected,
     groupRank: photo.groupRank,
     groupSize: photo.groupSize,
     facesDetected: photo.facesDetected,
