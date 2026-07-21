@@ -56,6 +56,11 @@ const de: Record<string, string> = {
   'photo.seriesBadge': 'Serie {{rank}}/{{size}}',
   'photo.lightroomHeading': 'Lightroom-Feinschliff',
   'photo.selectAria': '{{name}} auswählen',
+  'photo.viewSeries': 'Serie anzeigen ({{size}})',
+
+  'series.compareTitle': 'Serien-Vergleich ({{size}} Fotos)',
+  'series.pickThisOne': 'Dieses auswählen',
+  'series.thisOneSelected': '✓ Ausgewählt',
 
   'reasoning.sharpness.excellent': 'sehr scharf',
   'reasoning.sharpness.good': 'scharf',
@@ -69,6 +74,7 @@ const de: Record<string, string> = {
   'reasoning.groupRank': '{{rank}}. von {{size}} Fotos dieser Serie',
   'reasoning.eyesOpen': 'Augen offen',
   'reasoning.eyesClosed': '{{count}}× Augen geschlossen',
+  'reasoning.selectiveFocus': 'gezielter Fokus erkannt (Hintergrund bewusst unscharf)',
 
   'photo.eyesClosedBadge': '⚠ Augen geschlossen',
   'photo.scoreHint': 'Score anklicken für Aufschlüsselung',
@@ -190,6 +196,11 @@ const en: Record<string, string> = {
   'photo.seriesBadge': 'Series {{rank}}/{{size}}',
   'photo.lightroomHeading': 'Lightroom finishing touches',
   'photo.selectAria': 'Select {{name}}',
+  'photo.viewSeries': 'View series ({{size}})',
+
+  'series.compareTitle': 'Series comparison ({{size}} photos)',
+  'series.pickThisOne': 'Pick this one',
+  'series.thisOneSelected': '✓ Selected',
 
   'reasoning.sharpness.excellent': 'very sharp',
   'reasoning.sharpness.good': 'sharp',
@@ -203,6 +214,7 @@ const en: Record<string, string> = {
   'reasoning.groupRank': '{{rank}} of {{size}} photos in this series',
   'reasoning.eyesOpen': 'eyes open',
   'reasoning.eyesClosed': '{{count}}× eyes closed',
+  'reasoning.selectiveFocus': 'selective focus detected (background deliberately soft)',
 
   'photo.eyesClosedBadge': '⚠ Eyes closed',
   'photo.scoreHint': 'Click score for breakdown',

@@ -56,6 +56,7 @@ type Action =
   | { type: 'SET_PROGRESS'; progress: ProcessingProgress }
   | { type: 'SET_RESULTS'; photos: PhotoResult[] }
   | { type: 'TOGGLE_SELECTED'; id: string }
+  | { type: 'SELECT_FROM_GROUP'; groupId: number; id: string }
   | { type: 'SET_SHOW_ALL'; showAll: boolean }
   | { type: 'REORDER_CAROUSEL'; orderedIds: string[] }
   | { type: 'SET_LANG'; lang: Lang }
@@ -131,6 +132,15 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         photos: state.photos.map((p) => (p.id === action.id ? { ...p, isSelected: !p.isSelected } : p)),
+      };
+    case 'SELECT_FROM_GROUP':
+      return {
+        ...state,
+        photos: state.photos.map((p) => {
+          if (p.groupId !== action.groupId) return p;
+          const isPicked = p.id === action.id;
+          return { ...p, isPreselected: isPicked, isSelected: isPicked };
+        }),
       };
     case 'SET_SHOW_ALL':
       return { ...state, showAll: action.showAll };

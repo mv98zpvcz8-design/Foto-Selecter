@@ -5,11 +5,13 @@ import { useT } from '../i18n/useT';
 import { classifyReasoning } from '../lib/reasoning';
 import { formatReasoning, formatSuggestionNote } from '../i18n/format';
 import { PhotoDetailView } from './PhotoDetailView';
+import { SeriesCompareView } from './SeriesCompareView';
 
 export function PhotoCard({ photo }: { photo: PhotoResult }) {
-  const { dispatch } = useAppState();
+  const { state, dispatch } = useAppState();
   const t = useT();
   const [showDetail, setShowDetail] = useState(false);
+  const [showSeries, setShowSeries] = useState(false);
 
   if (photo.status === 'error') {
     return (
@@ -79,6 +81,11 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
       </div>
       <div className="photo-info">
         <span className="photo-name">{photo.name}</span>
+        {(photo.groupSize ?? 1) > 1 && (
+          <button type="button" className="view-series-btn" onClick={() => setShowSeries(true)}>
+            {t('photo.viewSeries', { size: photo.groupSize ?? 1 })}
+          </button>
+        )}
         <div className="photo-reasoning-row">
           <span className="photo-reasoning">{reasoningText}</span>
           <button
@@ -110,6 +117,12 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
       </div>
 
       {showDetail && <PhotoDetailView photo={photo} onClose={() => setShowDetail(false)} />}
+      {showSeries && (
+        <SeriesCompareView
+          groupPhotos={state.photos.filter((p) => p.status === 'done' && p.groupId === photo.groupId)}
+          onClose={() => setShowSeries(false)}
+        />
+      )}
     </div>
   );
 }
