@@ -26,7 +26,7 @@ export function generateLightroomSuggestions(photo: PhotoResult, styleHint: Purp
     suggestions.push({
       slider: 'Highlights / Whites',
       kind: 'highlights',
-      params: { percent: Math.round(highlightClipping * 100) },
+      params: { value: Math.round(highlightClipping * 100) / 100 },
     });
   }
 
@@ -34,7 +34,7 @@ export function generateLightroomSuggestions(photo: PhotoResult, styleHint: Purp
     suggestions.push({
       slider: 'Shadows / Blacks',
       kind: 'shadows',
-      params: { percent: Math.round(shadowClipping * 100) },
+      params: { value: Math.round(shadowClipping * 100) / 100 },
     });
   }
 

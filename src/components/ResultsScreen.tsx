@@ -5,14 +5,18 @@ import { PhotoCard } from './PhotoCard';
 import { CarouselSection } from './CarouselSection';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
-import { tierForScore } from '../lib/scoring';
+import { TIER_EDIT_THRESHOLD, TIER_POTENTIAL_THRESHOLD, tierForScore } from '../lib/scoring';
 import type { PhotoResult, Tier } from '../types';
 
 function TierSection({
   titleKey,
+  descKey,
+  descVars,
   photos,
 }: {
   titleKey: string;
+  descKey: string;
+  descVars?: Record<string, number>;
   photos: PhotoResult[];
 }) {
   const t = useT();
@@ -20,6 +24,7 @@ function TierSection({
   return (
     <>
       <div className="section-heading">{t(titleKey)} ({photos.length})</div>
+      <div className="tier-desc">{t(descKey, descVars)}</div>
       <div className="photo-grid">
         {photos.map((p, i) => (
           <PhotoCard key={p.id} photo={p} allPhotos={photos} index={i} />
@@ -140,9 +145,24 @@ export function ResultsScreen() {
           <div className="empty-state">{t('results.empty')}</div>
         ) : (
           <>
-            <TierSection titleKey="results.tierEdit" photos={tierBuckets.edit} />
-            <TierSection titleKey="results.tierPotential" photos={tierBuckets.potential} />
-            <TierSection titleKey="results.tierSkip" photos={tierBuckets.skip} />
+            <TierSection
+              titleKey="results.tierEdit"
+              descKey="results.tierEdit.desc"
+              descVars={{ threshold: TIER_EDIT_THRESHOLD }}
+              photos={tierBuckets.edit}
+            />
+            <TierSection
+              titleKey="results.tierPotential"
+              descKey="results.tierPotential.desc"
+              descVars={{ lower: TIER_POTENTIAL_THRESHOLD, upper: TIER_EDIT_THRESHOLD - 1 }}
+              photos={tierBuckets.potential}
+            />
+            <TierSection
+              titleKey="results.tierSkip"
+              descKey="results.tierSkip.desc"
+              descVars={{ threshold: TIER_POTENTIAL_THRESHOLD }}
+              photos={tierBuckets.skip}
+            />
           </>
         )
       ) : sortedVisible.length === 0 ? (

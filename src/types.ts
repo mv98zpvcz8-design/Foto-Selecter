@@ -92,7 +92,7 @@ export type SuggestionKind =
 export interface LightroomSuggestion {
   slider: string; // English Lightroom control name, e.g. "Highlights / Whites" — never translated
   kind: SuggestionKind; // looked up as `lr.${kind}` for the localized explanation
-  params?: { percent?: number };
+  params?: { value?: number };
 }
 
 export type AppStep = 'upload' | 'config' | 'processing' | 'results';

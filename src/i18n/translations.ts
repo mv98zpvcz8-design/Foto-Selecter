@@ -38,12 +38,12 @@ const de: Record<string, string> = {
   'purpose.instagram': 'Instagram',
   'purpose.kunde': 'Kunde',
   'purpose.portfolio': 'Portfolio',
-  'purpose.video': 'Video-Frame',
+  'purpose.video': 'Action-Serie',
   'purpose.sonstiges': 'Sonstiges',
   'purpose.instagram.desc': 'Belichtung & Wirkung im Feed zählen mehr als reine Detailschärfe',
   'purpose.kunde.desc': 'Ausgewogen, mit Fokus auf Verlässlichkeit und Vielfalt der Momente',
   'purpose.portfolio.desc': 'Höchste Ansprüche an Schärfe & technische Qualität',
-  'purpose.video.desc': 'Bestes Einzelbild aus einer kurzen Sequenz (z.B. Sport-Burst aus Video) herausziehen',
+  'purpose.video.desc': 'Bestes Einzelbild aus einer kurzen, schnellen Bildfolge herausfiltern (z.B. Sport- oder Actionaufnahmen, auch aus Videomaterial)',
   'purpose.sonstiges.desc': 'Ausgewogene Standard-Gewichtung',
 
   'processing.title': 'Fotos werden analysiert…',
@@ -62,8 +62,14 @@ const de: Record<string, string> = {
   'results.empty': 'Keine Fotos in dieser Ansicht.',
   'results.errorSection': 'Nicht auswertbare Dateien ({{count}})',
   'results.tierEdit': 'Bearbeiten',
+  'results.tierEdit.desc':
+    'Score ≥ {{threshold}} — technisch überzeugend und/oder klar das beste Foto seiner Serie. Direkt in deinen gewohnten Editing-Workflow übernehmen.',
   'results.tierPotential': 'Hat Potenzial',
+  'results.tierPotential.desc':
+    'Score {{lower}}–{{upper}} — brauchbar, aber mit erkennbaren Schwächen (z. B. Schärfe, Belichtung oder geschlossene Augen). Lohnt einen zweiten Blick von dir, bevor du entscheidest, ob es bearbeitet oder verworfen wird — die App stuft hier bewusst nicht automatisch ein.',
   'results.tierSkip': 'Nicht empfohlen',
+  'results.tierSkip.desc':
+    'Score < {{threshold}} — deutliche technische Mängel oder eine klar bessere Alternative in derselben Serie vorhanden. Nur bearbeiten, wenn Motiv oder Moment einzigartig und nicht ersetzbar ist.',
   'results.carouselHeading': 'Instagram-Carousel-Reihenfolge',
   'results.carouselHint': 'Ziehen zum Umsortieren. Cover-Bild zuerst, danach eine ausgewogene Mischung aus Ausrichtung und Aufnahme-Chronologie.',
 
@@ -133,9 +139,9 @@ const de: Record<string, string> = {
   'config.weightFaces': 'Gesichter/Augen',
 
   'lr.highlights':
-    '~{{percent}}% der Fläche wirkt ausgefressen — beide leicht absenken, um Zeichnung in den Lichtern zurückzuholen.',
+    'Clipping-Wert {{value}} (Skala 0–1) in den Lichtern — beide leicht absenken, um Zeichnung zurückzuholen.',
   'lr.shadows':
-    '~{{percent}}% der Fläche säuft ab — Shadows anheben, Blacks nur behutsam, damit der Look nicht flach wirkt.',
+    'Clipping-Wert {{value}} (Skala 0–1) in den Schatten — Shadows anheben, Blacks nur behutsam, damit der Look nicht flach wirkt.',
   'lr.exposureLow': 'Bild wirkt insgesamt unterbelichtet — um ca. +0.3 bis +0.7 EV anheben.',
   'lr.exposureHigh': 'Bild wirkt insgesamt überbelichtet — leicht absenken, danach Whites/Highlights neu justieren.',
   'lr.sharpening':
@@ -198,12 +204,12 @@ const en: Record<string, string> = {
   'purpose.instagram': 'Instagram',
   'purpose.kunde': 'Client',
   'purpose.portfolio': 'Portfolio',
-  'purpose.video': 'Video Frame',
+  'purpose.video': 'Action Series',
   'purpose.sonstiges': 'Other',
   'purpose.instagram.desc': 'Exposure & feed impact matter more than raw sharpness',
   'purpose.kunde.desc': 'Balanced, with a focus on reliability and variety of moments',
   'purpose.portfolio.desc': 'Highest demands on sharpness & technical quality',
-  'purpose.video.desc': 'Pulls the single best frame out of a short burst sequence (e.g. sports bursts extracted from video)',
+  'purpose.video.desc': 'Picks the single best frame out of a short, fast sequence (e.g. sports or action shots, including frames pulled from video)',
   'purpose.sonstiges.desc': 'Balanced default weighting',
 
   'processing.title': 'Analyzing photos…',
@@ -222,8 +228,14 @@ const en: Record<string, string> = {
   'results.empty': 'No photos in this view.',
   'results.errorSection': "Files that couldn't be evaluated ({{count}})",
   'results.tierEdit': 'Edit',
+  'results.tierEdit.desc':
+    'Score ≥ {{threshold}} — technically strong and/or clearly the best shot in its series. Send it straight into your usual editing workflow.',
   'results.tierPotential': 'Has potential',
+  'results.tierPotential.desc':
+    'Score {{lower}}–{{upper}} — usable, but with noticeable weaknesses (e.g. sharpness, exposure, or closed eyes). Worth a second look from you before deciding to edit or drop it — the app deliberately doesn\'t auto-decide this one.',
   'results.tierSkip': 'Not recommended',
+  'results.tierSkip.desc':
+    "Score < {{threshold}} — clear technical flaws, or a clearly better alternative exists in the same series. Only edit if the subject or moment is unique and can't be replaced.",
   'results.carouselHeading': 'Instagram carousel order',
   'results.carouselHint': 'Drag to reorder. Cover image first, then a balanced mix of orientation and capture chronology.',
 
@@ -292,9 +304,10 @@ const en: Record<string, string> = {
   'config.weightGroup': 'Series bonus',
   'config.weightFaces': 'Faces/eyes',
 
-  'lr.highlights': '~{{percent}}% of the frame looks blown out — lower both slightly to recover highlight detail.',
+  'lr.highlights':
+    'Clipping value {{value}} (0–1 scale) in the highlights — lower both slightly to recover detail.',
   'lr.shadows':
-    "~{{percent}}% of the frame is crushed — raise Shadows, nudge Blacks carefully so the look doesn't go flat.",
+    "Clipping value {{value}} (0–1 scale) in the shadows — raise Shadows, nudge Blacks carefully so the look doesn't go flat.",
   'lr.exposureLow': 'Image looks underexposed overall — raise by roughly +0.3 to +0.7 EV.',
   'lr.exposureHigh': 'Image looks overexposed overall — lower slightly, then re-balance Whites/Highlights.',
   'lr.sharpening':

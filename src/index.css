@@ -802,6 +802,14 @@ input, select {
   background: var(--separator);
 }
 
+.tier-desc {
+  margin: -10px 0 18px;
+  color: var(--label-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 68ch;
+}
+
 /* --- score breakdown modal --- */
 
 .modal-backdrop {
