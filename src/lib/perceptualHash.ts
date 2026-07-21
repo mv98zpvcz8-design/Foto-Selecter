@@ -1,8 +1,7 @@
 import { ERR_CANVAS_UNAVAILABLE, ERR_IMAGE_LOAD } from './errorCodes';
+import { dHashFromGrayscale, HASH_BITS, HASH_HEIGHT, HASH_WIDTH, hammingDistance, rgbaToGrayscale } from './pixelMath';
 
-export const HASH_BITS = 256;
-const HASH_HEIGHT = 16;
-const HASH_WIDTH = HASH_BITS / HASH_HEIGHT + 1; // 17 columns -> 16 horizontal comparisons/row
+export { HASH_BITS, hammingDistance };
 
 /**
  * Computes a 256-bit difference hash (dHash) of an image. Two images of a
@@ -12,6 +11,10 @@ const HASH_WIDTH = HASH_BITS / HASH_HEIGHT + 1; // 17 columns -> 16 horizontal c
  * common 8x8/64-bit dHash) gives enough resolution to tell apart distinct
  * moments within a fast sports/event burst instead of lumping the whole
  * sequence into one group.
+ *
+ * Main-thread implementation, used as a fallback when Web Workers/
+ * OffscreenCanvas aren't available — see workers/analysisWorker.ts for
+ * the worker-pool path large batches normally take.
  */
 export function computeDHash(url: string): Promise<bigint> {
   return new Promise((resolve, reject) => {
@@ -27,33 +30,9 @@ export function computeDHash(url: string): Promise<bigint> {
       }
       ctx.drawImage(img, 0, 0, HASH_WIDTH, HASH_HEIGHT);
       const { data } = ctx.getImageData(0, 0, HASH_WIDTH, HASH_HEIGHT);
-
-      const gray = new Float32Array(HASH_WIDTH * HASH_HEIGHT);
-      for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-        gray[p] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-      }
-
-      let hash = 0n;
-      for (let y = 0; y < HASH_HEIGHT; y++) {
-        for (let x = 0; x < HASH_WIDTH - 1; x++) {
-          const left = gray[y * HASH_WIDTH + x];
-          const right = gray[y * HASH_WIDTH + x + 1];
-          hash = (hash << 1n) | (left < right ? 1n : 0n);
-        }
-      }
-      resolve(hash);
+      resolve(dHashFromGrayscale(rgbaToGrayscale(data)));
     };
     img.onerror = () => reject(new Error(ERR_IMAGE_LOAD));
     img.src = url;
   });
-}
-
-export function hammingDistance(a: bigint, b: bigint): number {
-  let xor = a ^ b;
-  let count = 0;
-  while (xor > 0n) {
-    count += Number(xor & 1n);
-    xor >>= 1n;
-  }
-  return count;
 }

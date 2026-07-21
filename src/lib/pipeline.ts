@@ -3,6 +3,7 @@ import { extractExifMeta } from './exifMeta';
 import { analyzeImage } from './imageAnalysis';
 import { computeDHash } from './perceptualHash';
 import { analyzeFacesSafe } from './faceAnalysis';
+import { analyzeInWorker, isWorkerAnalysisSupported, type WorkerAnalysisResult } from './workerPool';
 import { scorePhotos, selectTopN, selectTriage } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
 import { assignCarouselPositions } from './carousel';
@@ -21,6 +22,13 @@ const ERROR_KEY_BY_CODE: Record<PipelineErrorCode, string> = {
   [ERR_CANVAS_UNAVAILABLE]: 'error.canvasUnavailable',
   [ERR_IMAGE_LOAD]: 'error.imageLoadFailed',
 };
+
+const WORKERS_SUPPORTED = isWorkerAnalysisSupported();
+// With workers, several photos' pixel-crunching runs in parallel threads
+// instead of one at a time on the main thread — this is what keeps a
+// 100+ photo batch from freezing the UI. Without worker support we fall
+// back to today's single-lane, main-thread path.
+const CONCURRENCY = WORKERS_SUPPORTED ? Math.max(1, Math.min(4, navigator.hardwareConcurrency || 2)) : 1;
 
 export interface CancelToken {
   cancelled: boolean;
@@ -58,17 +66,33 @@ export function createInitialPhotoResults(files: File[]): PhotoResult[] {
   }));
 }
 
+async function runPixelAnalysis(previewUrl: string): Promise<WorkerAnalysisResult> {
+  if (WORKERS_SUPPORTED) {
+    try {
+      return await analyzeInWorker(previewUrl);
+    } catch {
+      // fall through to main-thread path if this particular job failed
+      // (e.g. the worker choked on a malformed preview) — one bad photo
+      // shouldn't take the whole batch off the fast path.
+    }
+  }
+  const [analysis, hash] = await Promise.all([analyzeImage(previewUrl), computeDHash(previewUrl)]);
+  return { ...analysis, hash };
+}
+
 /**
  * Runs the per-photo pipeline (preview extraction, blur/exposure/face
- * analysis, perceptual hash) sequentially so the UI thread stays
- * responsive and progress can be reported, then scores and pre-selects
- * the whole batch using the given (already-resolved) weight profile.
- * Photos already marked 'done' or 'error' are skipped, so re-running
- * after the user goes back to change purpose/target count only redoes
- * the cheap scoring step, not the expensive extraction. Checks
- * `cancelToken.cancelled` between photos so a user-triggered cancel
- * (going back mid-analysis) stops further work promptly; already
- * in-flight work for the current photo is not aborted, just not scored.
+ * analysis, perceptual hash) with up to CONCURRENCY photos in flight at
+ * once — the sharpness/exposure/hash crunching happens in pooled Web
+ * Workers when available, so large batches don't compete with the UI
+ * thread for every frame decode/convolution — then scores and
+ * pre-selects the whole batch using the given (already-resolved) weight
+ * profile. Photos already marked 'done' or 'error' are skipped, so
+ * re-running after the user goes back to change purpose/target count
+ * only redoes the cheap scoring step, not the expensive extraction.
+ * Checks `cancelToken.cancelled` between photos so a user-triggered
+ * cancel (going back mid-analysis) stops further work promptly;
+ * already in-flight work is not aborted, just not scored.
  */
 export async function runPipeline(
   photos: PhotoResult[],
@@ -78,14 +102,11 @@ export async function runPipeline(
   onProgress: (done: number, total: number) => void,
   cancelToken: CancelToken = { cancelled: false },
 ): Promise<PhotoResult[]> {
-  for (let i = 0; i < photos.length; i++) {
-    if (cancelToken.cancelled) return photos;
+  let nextIndex = 0;
+  let completed = 0;
 
-    const photo = photos[i];
-    if (photo.status === 'done' || photo.status === 'error') {
-      onProgress(i + 1, photos.length);
-      continue;
-    }
+  async function processPhoto(photo: PhotoResult): Promise<void> {
+    if (photo.status === 'done' || photo.status === 'error') return;
 
     photo.status = 'processing';
     try {
@@ -94,10 +115,9 @@ export async function runPipeline(
       photo.previewWidth = preview.width;
       photo.previewHeight = preview.height;
 
-      const [meta, analysis, hash, faces] = await Promise.all([
+      const [meta, analysis, faces] = await Promise.all([
         extractExifMeta(photo.file),
-        analyzeImage(preview.url),
-        computeDHash(preview.url),
+        runPixelAnalysis(preview.url),
         analyzeFacesSafe(preview.url),
       ]);
 
@@ -107,7 +127,7 @@ export async function runPipeline(
       photo.shadowClipping = analysis.shadowClipping;
       photo.highlightClipping = analysis.highlightClipping;
       photo.meanLuminance = analysis.meanLuminance;
-      photo.hash = hash;
+      photo.hash = analysis.hash;
       photo.facesDetected = faces.facesDetected;
       photo.facesWithClosedEyes = faces.facesWithClosedEyes;
 
@@ -121,10 +141,20 @@ export async function runPipeline(
       const code = err instanceof Error ? (err.message as PipelineErrorCode) : undefined;
       photo.errorKey = (code && ERROR_KEY_BY_CODE[code]) || 'error.unknown';
     }
-
-    onProgress(i + 1, photos.length);
-    await yieldToUi();
   }
+
+  async function lane(): Promise<void> {
+    while (nextIndex < photos.length) {
+      if (cancelToken.cancelled) return;
+      const photo = photos[nextIndex++];
+      await processPhoto(photo);
+      completed++;
+      onProgress(completed, photos.length);
+      await yieldToUi();
+    }
+  }
+
+  await Promise.all(Array.from({ length: CONCURRENCY }, () => lane()));
 
   if (cancelToken.cancelled) return photos;
 
