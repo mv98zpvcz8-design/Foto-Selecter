@@ -37,6 +37,8 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
     .filter(Boolean)
     .join(' ');
 
+  const reasoningText = formatReasoning(classifyReasoning(photo), t);
+
   return (
     <div className={cardClass}>
       <div className="photo-thumb">
@@ -70,12 +72,12 @@ export function PhotoCard({ photo }: { photo: PhotoResult }) {
       <div className="photo-info">
         <span className="photo-name">{photo.name}</span>
         <div className="photo-reasoning-row">
-          <span className="photo-reasoning">{formatReasoning(classifyReasoning(photo), t)}</span>
+          <span className="photo-reasoning">{reasoningText}</span>
           <button
             type="button"
             className="info-icon-btn"
-            title={t('photo.scoreHint')}
-            aria-label={t('photo.scoreHint')}
+            title={reasoningText}
+            aria-label={t('photo.whyThisPhoto')}
             onClick={() => setShowBreakdown(true)}
           >
             ⓘ

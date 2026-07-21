@@ -70,6 +70,7 @@ const de: Record<string, string> = {
 
   'photo.eyesClosedBadge': '⚠ Augen geschlossen',
   'photo.scoreHint': 'Score anklicken für Aufschlüsselung',
+  'photo.whyThisPhoto': 'Warum dieses Foto?',
 
   'breakdown.title': 'Score-Aufschlüsselung',
   'breakdown.sharpness': 'Schärfe',
@@ -200,6 +201,7 @@ const en: Record<string, string> = {
 
   'photo.eyesClosedBadge': '⚠ Eyes closed',
   'photo.scoreHint': 'Click score for breakdown',
+  'photo.whyThisPhoto': 'Why this photo?',
 
   'breakdown.title': 'Score breakdown',
   'breakdown.sharpness': 'Sharpness',
