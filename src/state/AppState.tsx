@@ -1,7 +1,23 @@
-import { createContext, useContext, useReducer, type ReactNode, type Dispatch } from 'react';
+import { createContext, useContext, useEffect, useReducer, type ReactNode, type Dispatch } from 'react';
 import type { AppStep, PhotoResult, Purpose, ProcessingProgress } from '../types';
+import type { Lang } from '../i18n/translations';
 import { isSupportedFile } from '../lib/fileTypes';
 import { createInitialPhotoResults } from '../lib/pipeline';
+
+const LANG_STORAGE_KEY = 'foto-selecter-lang';
+
+function getInitialLang(): Lang {
+  try {
+    const stored = window.localStorage.getItem(LANG_STORAGE_KEY);
+    if (stored === 'de' || stored === 'en') return stored;
+  } catch {
+    // localStorage unavailable (private mode, etc.) — fall through to default
+  }
+  if (typeof navigator !== 'undefined' && !navigator.language?.toLowerCase().startsWith('de')) {
+    return 'en';
+  }
+  return 'de';
+}
 
 interface AppState {
   step: AppStep;
@@ -11,6 +27,7 @@ interface AppState {
   purpose: Purpose;
   progress: ProcessingProgress;
   showAll: boolean;
+  lang: Lang;
 }
 
 type Action =
@@ -19,24 +36,27 @@ type Action =
   | { type: 'CLEAR_FILES' }
   | { type: 'SET_TARGET_COUNT'; count: number }
   | { type: 'SET_PURPOSE'; purpose: Purpose }
-  | { type: 'GO_TO_CONFIG' }
-  | { type: 'BACK_TO_UPLOAD' }
+  | { type: 'GO_TO_STEP'; step: AppStep }
   | { type: 'START_PROCESSING' }
   | { type: 'SET_PROGRESS'; progress: ProcessingProgress }
   | { type: 'SET_RESULTS'; photos: PhotoResult[] }
   | { type: 'TOGGLE_SELECTED'; id: string }
   | { type: 'SET_SHOW_ALL'; showAll: boolean }
+  | { type: 'SET_LANG'; lang: Lang }
   | { type: 'RESET' };
 
-const initialState: AppState = {
-  step: 'upload',
-  photos: [],
-  rejectedFileNames: [],
-  targetCount: 20,
-  purpose: 'kunde',
-  progress: { done: 0, total: 0 },
-  showAll: false,
-};
+function createInitialState(): AppState {
+  return {
+    step: 'upload',
+    photos: [],
+    rejectedFileNames: [],
+    targetCount: 20,
+    purpose: 'kunde',
+    progress: { done: 0, total: 0 },
+    showAll: false,
+    lang: getInitialLang(),
+  };
+}
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -67,10 +87,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, targetCount: Math.max(1, Math.round(action.count)) };
     case 'SET_PURPOSE':
       return { ...state, purpose: action.purpose };
-    case 'GO_TO_CONFIG':
-      return { ...state, step: 'config' };
-    case 'BACK_TO_UPLOAD':
-      return { ...state, step: 'upload' };
+    case 'GO_TO_STEP':
+      return { ...state, step: action.step };
     case 'START_PROCESSING':
       return { ...state, step: 'processing', progress: { done: 0, total: state.photos.length } };
     case 'SET_PROGRESS':
@@ -84,11 +102,14 @@ function reducer(state: AppState, action: Action): AppState {
       };
     case 'SET_SHOW_ALL':
       return { ...state, showAll: action.showAll };
-    case 'RESET':
+    case 'SET_LANG':
+      return { ...state, lang: action.lang };
+    case 'RESET': {
       for (const photo of state.photos) {
         if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
       }
-      return initialState;
+      return { ...createInitialState(), lang: state.lang };
+    }
     default:
       return state;
   }
@@ -102,7 +123,16 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LANG_STORAGE_KEY, state.lang);
+    } catch {
+      // localStorage unavailable — language choice just won't persist
+    }
+  }, [state.lang]);
+
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
 }
 

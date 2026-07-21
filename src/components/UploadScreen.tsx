@@ -1,5 +1,6 @@
 import { useRef, useState, type DragEvent } from 'react';
 import { useAppState } from '../state/AppState';
+import { useT } from '../i18n/useT';
 import { SUPPORTED_EXTENSIONS } from '../lib/fileTypes';
 
 function formatSize(bytes: number): string {
@@ -9,7 +10,9 @@ function formatSize(bytes: number): string {
 
 export function UploadScreen() {
   const { state, dispatch } = useAppState();
+  const t = useT();
   const [dragging, setDragging] = useState(false);
+  const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function addFiles(fileList: FileList | null) {
@@ -17,8 +20,29 @@ export function UploadScreen() {
     dispatch({ type: 'ADD_FILES', files: Array.from(fileList) });
   }
 
+  function handleDragEnter(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    dragCounter.current += 1;
+    setDragging(true);
+  }
+
+  function handleDragLeave(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setDragging(false);
+    }
+  }
+
+  function handleDragOver(e: DragEvent<HTMLDivElement>) {
+    // required so the browser allows dropping here at all
+    e.preventDefault();
+  }
+
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
+    dragCounter.current = 0;
     setDragging(false);
     addFiles(e.dataTransfer.files);
   }
@@ -27,22 +51,17 @@ export function UploadScreen() {
     <div>
       <div
         className={`dropzone${dragging ? ' dragging' : ''}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         role="button"
         tabIndex={0}
       >
         <div className="dropzone-icon">📁</div>
-        <h2>RAW- oder JPEG-Dateien hierher ziehen</h2>
-        <p>
-          Unterstützt: {SUPPORTED_EXTENSIONS.map((e) => `.${e.toUpperCase()}`).join(', ')} — oder klicken, um
-          Dateien auszuwählen. Alles bleibt lokal in deinem Browser.
-        </p>
+        <h2>{t('upload.title')}</h2>
+        <p>{t('upload.subtitle', { formats: SUPPORTED_EXTENSIONS.map((e) => `.${e.toUpperCase()}`).join(', ') })}</p>
         <input
           ref={inputRef}
           type="file"
@@ -55,9 +74,11 @@ export function UploadScreen() {
 
       {state.rejectedFileNames.length > 0 && (
         <div className="warning-banner">
-          {state.rejectedFileNames.length} Datei(en) übersprungen (nicht unterstütztes Format):{' '}
-          {state.rejectedFileNames.slice(0, 5).join(', ')}
-          {state.rejectedFileNames.length > 5 ? ', …' : ''}
+          {t('upload.rejected', {
+            count: state.rejectedFileNames.length,
+            names:
+              state.rejectedFileNames.slice(0, 5).join(', ') + (state.rejectedFileNames.length > 5 ? ', …' : ''),
+          })}
         </div>
       )}
 
@@ -71,7 +92,7 @@ export function UploadScreen() {
                 type="button"
                 className="file-remove"
                 onClick={() => dispatch({ type: 'REMOVE_FILE', id: p.id })}
-                aria-label={`${p.name} entfernen`}
+                aria-label={t('upload.removeAria', { name: p.name })}
               >
                 ✕
               </button>
@@ -82,23 +103,21 @@ export function UploadScreen() {
 
       <div className="actions-row">
         <span className="summary-line">
-          {state.photos.length === 0
-            ? 'Noch keine Fotos ausgewählt'
-            : `${state.photos.length} Foto(s) bereit`}
+          {state.photos.length === 0 ? t('upload.noneSelected') : t('upload.readyCount', { count: state.photos.length })}
         </span>
         <div style={{ display: 'flex', gap: 10 }}>
           {state.photos.length > 0 && (
             <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'CLEAR_FILES' })}>
-              Alle entfernen
+              {t('upload.clearAll')}
             </button>
           )}
           <button
             type="button"
             className="btn btn-primary"
             disabled={state.photos.length === 0}
-            onClick={() => dispatch({ type: 'GO_TO_CONFIG' })}
+            onClick={() => dispatch({ type: 'GO_TO_STEP', step: 'config' })}
           >
-            Weiter
+            {t('upload.next')}
           </button>
         </div>
       </div>

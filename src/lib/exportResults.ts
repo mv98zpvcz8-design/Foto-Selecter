@@ -1,4 +1,8 @@
 import type { PhotoResult } from '../types';
+import { classifyReasoning } from './reasoning';
+import { formatReasoning, formatSuggestionNote } from '../i18n/format';
+
+type T = (key: string, vars?: Record<string, string | number>) => string;
 
 function csvEscape(value: string): string {
   if (/[",\n]/.test(value)) {
@@ -25,18 +29,22 @@ export function exportAsTxt(photos: PhotoResult[]) {
   download('opticsbydom-auswahl.txt', content, 'text/plain;charset=utf-8');
 }
 
-export function exportAsCsv(photos: PhotoResult[]) {
+export function exportAsCsv(photos: PhotoResult[], t: T) {
   const selected = photos.filter((p) => p.isSelected);
-  const header = 'Dateiname,Score,Begründung,Vorausgewählt,Lightroom-Empfehlungen';
-  const rows = selected.map((p) =>
-    [
+  const header = t('export.header');
+  const rows = selected.map((p) => {
+    const reasoning = formatReasoning(classifyReasoning(p), t);
+    const suggestions = (p.lightroomSuggestions ?? [])
+      .map((s) => `${s.slider}: ${formatSuggestionNote(s, t)}`)
+      .join(' | ');
+    return [
       csvEscape(p.name),
       String(p.overallScore ?? ''),
-      csvEscape(p.reasoning ?? ''),
-      p.isPreselected ? 'ja' : 'nein',
-      csvEscape((p.lightroomSuggestions ?? []).map((s) => `${s.slider}: ${s.note}`).join(' | ')),
-    ].join(','),
-  );
+      csvEscape(reasoning),
+      p.isPreselected ? t('export.yes') : t('export.no'),
+      csvEscape(suggestions),
+    ].join(',');
+  });
   const content = [header, ...rows].join('\n');
   download('opticsbydom-auswahl.csv', content, 'text/csv;charset=utf-8');
 }

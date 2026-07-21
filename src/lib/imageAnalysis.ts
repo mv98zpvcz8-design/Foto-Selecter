@@ -1,3 +1,5 @@
+import { ERR_CANVAS_UNAVAILABLE, ERR_IMAGE_LOAD } from './errorCodes';
+
 const ANALYSIS_MAX_DIM = 480;
 
 export interface RawAnalysis {
@@ -38,7 +40,7 @@ function loadGrayscale(url: string): Promise<GrayscaleData> {
       canvas.height = height;
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) {
-        reject(new Error('Canvas 2D-Kontext nicht verfügbar'));
+        reject(new Error(ERR_CANVAS_UNAVAILABLE));
         return;
       }
       ctx.drawImage(img, 0, 0, width, height);
@@ -50,7 +52,7 @@ function loadGrayscale(url: string): Promise<GrayscaleData> {
       }
       resolve({ data: gray, width, height });
     };
-    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
+    img.onerror = () => reject(new Error(ERR_IMAGE_LOAD));
     img.src = url;
   });
 }

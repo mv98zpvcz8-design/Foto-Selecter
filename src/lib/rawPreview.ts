@@ -1,5 +1,6 @@
 import * as exifr from 'exifr';
 import { isJpegFile } from './fileTypes';
+import { ERR_NO_PREVIEW, ERR_PREVIEW_LOAD } from './errorCodes';
 
 export interface ExtractedPreview {
   url: string;
@@ -26,7 +27,7 @@ export async function extractPreview(file: File): Promise<ExtractedPreview> {
 
   const url = await exifr.thumbnailUrl(file);
   if (!url) {
-    throw new Error('Kein eingebettetes Vorschaubild gefunden');
+    throw new Error(ERR_NO_PREVIEW);
   }
   const { width, height } = await loadImageDimensions(url);
   return { url, width, height };
@@ -36,7 +37,7 @@ function loadImageDimensions(url: string): Promise<{ width: number; height: numb
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    img.onerror = () => reject(new Error('Vorschaubild konnte nicht geladen werden'));
+    img.onerror = () => reject(new Error(ERR_PREVIEW_LOAD));
     img.src = url;
   });
 }

@@ -1,3 +1,5 @@
+import { ERR_CANVAS_UNAVAILABLE, ERR_IMAGE_LOAD } from './errorCodes';
+
 const HASH_WIDTH = 9;
 const HASH_HEIGHT = 8;
 
@@ -16,7 +18,7 @@ export function computeDHash(url: string): Promise<bigint> {
       canvas.height = HASH_HEIGHT;
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) {
-        reject(new Error('Canvas 2D-Kontext nicht verfügbar'));
+        reject(new Error(ERR_CANVAS_UNAVAILABLE));
         return;
       }
       ctx.drawImage(img, 0, 0, HASH_WIDTH, HASH_HEIGHT);
@@ -37,7 +39,7 @@ export function computeDHash(url: string): Promise<bigint> {
       }
       resolve(hash);
     };
-    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
+    img.onerror = () => reject(new Error(ERR_IMAGE_LOAD));
     img.src = url;
   });
 }

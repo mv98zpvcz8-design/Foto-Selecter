@@ -14,6 +14,8 @@ Lokale React-Web-App zum Aussortieren von RAW- und JPEG-Fotos. Läuft komplett c
 4. **Auswahl** — die Top-N Fotos werden vorgeschlagen (ein Bild pro Serie, außer die Zielanzahl übersteigt die Anzahl unterschiedlicher Serien). Für jedes vorausgewählte Foto gibt es konkrete **Lightroom-Regler-Empfehlungen** (englische Reglernamen) passend zum Verwendungszweck (`src/lib/lightroomSuggestions.ts`).
 5. **Export** — Auswahl als `.txt` oder `.csv` exportieren, zum Abgleich mit Lightroom/Capture One.
 
+Jeder Schritt lässt sich über die klickbare Schritt-Anzeige oben rechts oder die Zurück-/Abbrechen-Buttons rückgängig machen, ohne bereits hochgeladene Fotos zu verlieren — ein erneuter Analyse-Lauf verarbeitet nur noch neue Fotos, bereits ausgewertete werden übersprungen. Die Sprache (Deutsch/Englisch) lässt sich oben rechts umschalten und wird im Browser gespeichert.
+
 ## RAW-Vorschau-Extraktion
 
 Browser können RAW-Sensordaten nicht dekodieren. Die App extrahiert daher das in der RAW-Datei eingebettete JPEG-Vorschaubild über [`exifr`](https://github.com/MikeKovarik/exifr). JPEGs werden direkt angezeigt. Die Extraktion funktioniert zuverlässig für CR2/NEF/ARW/RAF/DNG. **CR3** (neuere Canon-RAWs) nutzt einen anderen Container; die Extraktion ist Best-Effort — schlägt sie fehl, wird die Datei mit Fehlermeldung angezeigt und bleibt von der Bewertung ausgeschlossen, blockiert aber nicht den Rest des Batches.

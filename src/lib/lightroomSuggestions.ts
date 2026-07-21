@@ -10,7 +10,9 @@ const SHARPNESS_HEADROOM = 75; // below this, extra sharpening still helps
  * further, split into two parts: corrections grounded in what the
  * pipeline actually measured (clipping, exposure, softness), followed by
  * a couple of purpose-specific finishing touches. Slider names use the
- * English Lightroom terminology so they map 1:1 onto the panel.
+ * English Lightroom terminology so they map 1:1 onto the panel regardless
+ * of the UI language; the `kind` is resolved to a localized explanation
+ * at render time via `lr.${kind}` translation keys.
  */
 export function generateLightroomSuggestions(photo: PhotoResult, purpose: Purpose): LightroomSuggestion[] {
   const suggestions: LightroomSuggestion[] = [];
@@ -23,34 +25,27 @@ export function generateLightroomSuggestions(photo: PhotoResult, purpose: Purpos
   if (highlightClipping > CLIPPING_THRESHOLD) {
     suggestions.push({
       slider: 'Highlights / Whites',
-      note: `~${Math.round(highlightClipping * 100)}% der Fläche wirkt ausgefressen — beide leicht absenken, um Zeichnung in den Lichtern zurückzuholen.`,
+      kind: 'highlights',
+      params: { percent: Math.round(highlightClipping * 100) },
     });
   }
 
   if (shadowClipping > CLIPPING_THRESHOLD) {
     suggestions.push({
       slider: 'Shadows / Blacks',
-      note: `~${Math.round(shadowClipping * 100)}% der Fläche säuft ab — Shadows anheben, Blacks nur behutsam, damit der Look nicht flach wirkt.`,
+      kind: 'shadows',
+      params: { percent: Math.round(shadowClipping * 100) },
     });
   }
 
   if (meanLuminance < LOW_LUMINANCE) {
-    suggestions.push({
-      slider: 'Exposure',
-      note: 'Bild wirkt insgesamt unterbelichtet — um ca. +0.3 bis +0.7 EV anheben.',
-    });
+    suggestions.push({ slider: 'Exposure', kind: 'exposureLow' });
   } else if (meanLuminance > HIGH_LUMINANCE) {
-    suggestions.push({
-      slider: 'Exposure',
-      note: 'Bild wirkt insgesamt überbelichtet — leicht absenken, danach Whites/Highlights neu justieren.',
-    });
+    suggestions.push({ slider: 'Exposure', kind: 'exposureHigh' });
   }
 
   if (sharpnessScore < SHARPNESS_HEADROOM) {
-    suggestions.push({
-      slider: 'Sharpening — Amount / Radius / Masking',
-      note: 'Im Detail-Panel maskiert nachschärfen (hoher Masking-Wert), damit nur Kanten geschärft werden und Rauschen ruhig bleibt.',
-    });
+    suggestions.push({ slider: 'Sharpening — Amount / Radius / Masking', kind: 'sharpening' });
   }
 
   suggestions.push(...purposeFinishingTouches(purpose));
@@ -62,22 +57,22 @@ function purposeFinishingTouches(purpose: Purpose): LightroomSuggestion[] {
   switch (purpose) {
     case 'portfolio':
       return [
-        { slider: 'Clarity', note: 'Dezent erhöhen für mehr Tiefe/Kontrast in den Mitteltönen.' },
-        { slider: 'Texture', note: 'Feine Strukturen betonen, ohne den Rauschanteil zu verstärken.' },
-        { slider: 'Crop Overlay', note: 'Bildausschnitt nachjustieren — für Portfolios zählt jede Kante der Komposition.' },
+        { slider: 'Clarity', kind: 'portfolioClarity' },
+        { slider: 'Texture', kind: 'portfolioTexture' },
+        { slider: 'Crop Overlay', kind: 'portfolioCrop' },
       ];
     case 'instagram':
       return [
-        { slider: 'Vibrance', note: 'Leicht erhöhen für einen kräftigeren, feed-tauglichen Look, ohne Hauttöne zu verfälschen.' },
-        { slider: 'Tone Curve', note: 'Sanfte S-Kurve für mehr Punch in der kleinen Bildschirmansicht.' },
-        { slider: 'Vignette (Post-Crop)', note: 'Dezent abdunkeln, um den Blick zum Motiv zu lenken.' },
+        { slider: 'Vibrance', kind: 'instaVibrance' },
+        { slider: 'Tone Curve', kind: 'instaToneCurve' },
+        { slider: 'Vignette (Post-Crop)', kind: 'instaVignette' },
       ];
     case 'kunde':
       return [
-        { slider: 'White Balance — Temp / Tint', note: 'Feinabstimmung für konsistente, natürliche Farben über die ganze Serie.' },
-        { slider: 'Tone Curve', note: 'Sanfter Grundkontrast für ein poliertes, aber unaufdringliches Ergebnis.' },
+        { slider: 'White Balance — Temp / Tint', kind: 'kundeWhiteBalance' },
+        { slider: 'Tone Curve', kind: 'kundeToneCurve' },
       ];
     default:
-      return [{ slider: 'Tone Curve', note: 'Grundkontrast verfeinern für mehr Bildwirkung.' }];
+      return [{ slider: 'Tone Curve', kind: 'defaultToneCurve' }];
   }
 }

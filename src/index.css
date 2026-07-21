@@ -143,6 +143,37 @@ input, select {
   color: var(--accent);
   font-weight: 600;
 }
+.step-indicator .clickable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.step-indicator .clickable:hover {
+  color: var(--label);
+  text-decoration: underline;
+}
+
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+}
+.lang-btn {
+  padding: 5px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--label-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lang-btn.selected {
+  background: var(--bg-elevated);
+  color: var(--accent-strong);
+}
 
 /* --- buttons --- */
 

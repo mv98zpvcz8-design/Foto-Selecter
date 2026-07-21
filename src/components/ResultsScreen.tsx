@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useAppState } from '../state/AppState';
+import { useT } from '../i18n/useT';
 import { PhotoCard } from './PhotoCard';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
-import { PURPOSE_LABELS } from '../types';
 
 export function ResultsScreen() {
   const { state, dispatch } = useAppState();
+  const t = useT();
   const { photos, showAll, purpose } = state;
 
   const donePhotos = useMemo(() => photos.filter((p) => p.status === 'done'), [photos]);
@@ -25,15 +26,15 @@ export function ResultsScreen() {
         <div className="results-stats">
           <div>
             <strong>{selectedCount}</strong>
-            <div>ausgewählt</div>
+            <div>{t('results.selected')}</div>
           </div>
           <div>
             <strong>{preselected.length}</strong>
-            <div>Vorschlag ({PURPOSE_LABELS[purpose]})</div>
+            <div>{t('results.suggested', { purpose: t(`purpose.${purpose}`) })}</div>
           </div>
           <div>
             <strong>{donePhotos.length}</strong>
-            <div>gesamt analysiert</div>
+            <div>{t('results.totalAnalyzed')}</div>
           </div>
         </div>
         <div className="toolbar-actions">
@@ -43,22 +44,29 @@ export function ResultsScreen() {
               checked={showAll}
               onChange={(e) => dispatch({ type: 'SET_SHOW_ALL', showAll: e.target.checked })}
             />
-            Alle anzeigen
+            {t('results.showAll')}
           </label>
           <button type="button" className="btn btn-sm" onClick={() => exportAsTxt(photos)}>
-            .txt exportieren
+            {t('results.exportTxt')}
           </button>
-          <button type="button" className="btn btn-sm" onClick={() => exportAsCsv(photos)}>
-            .csv exportieren
+          <button type="button" className="btn btn-sm" onClick={() => exportAsCsv(photos, t)}>
+            {t('results.exportCsv')}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => dispatch({ type: 'GO_TO_STEP', step: 'config' })}
+          >
+            {t('results.backToConfig')}
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => dispatch({ type: 'RESET' })}>
-            Neuer Durchlauf
+            {t('results.newRun')}
           </button>
         </div>
       </div>
 
       {sortedVisible.length === 0 ? (
-        <div className="empty-state">Keine Fotos in dieser Ansicht.</div>
+        <div className="empty-state">{t('results.empty')}</div>
       ) : (
         <div className="photo-grid">
           {sortedVisible.map((p) => (
@@ -69,7 +77,7 @@ export function ResultsScreen() {
 
       {errorPhotos.length > 0 && (
         <>
-          <div className="section-heading">Nicht auswertbare Dateien ({errorPhotos.length})</div>
+          <div className="section-heading">{t('results.errorSection', { count: errorPhotos.length })}</div>
           <div className="photo-grid">
             {errorPhotos.map((p) => (
               <PhotoCard key={p.id} photo={p} />

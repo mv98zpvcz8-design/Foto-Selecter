@@ -1,11 +1,6 @@
 export type Purpose = 'instagram' | 'kunde' | 'portfolio' | 'sonstiges';
 
-export const PURPOSE_LABELS: Record<Purpose, string> = {
-  instagram: 'Instagram',
-  kunde: 'Kunde',
-  portfolio: 'Portfolio',
-  sonstiges: 'Sonstiges',
-};
+export const PURPOSE_VALUES: Purpose[] = ['instagram', 'kunde', 'portfolio', 'sonstiges'];
 
 export type PhotoStatus = 'pending' | 'processing' | 'done' | 'error';
 
@@ -14,7 +9,7 @@ export interface PhotoResult {
   file: File;
   name: string;
   status: PhotoStatus;
-  error?: string;
+  errorKey?: string; // translation key, e.g. "error.noPreview"
 
   previewUrl?: string;
   previewWidth?: number;
@@ -37,7 +32,6 @@ export interface PhotoResult {
   groupSize?: number;
 
   overallScore?: number; // 0-100
-  reasoning?: string;
 
   isPreselected?: boolean;
   isSelected?: boolean; // user-controlled, defaults to isPreselected
@@ -45,9 +39,26 @@ export interface PhotoResult {
   lightroomSuggestions?: LightroomSuggestion[];
 }
 
+export type SuggestionKind =
+  | 'highlights'
+  | 'shadows'
+  | 'exposureLow'
+  | 'exposureHigh'
+  | 'sharpening'
+  | 'portfolioClarity'
+  | 'portfolioTexture'
+  | 'portfolioCrop'
+  | 'instaVibrance'
+  | 'instaToneCurve'
+  | 'instaVignette'
+  | 'kundeWhiteBalance'
+  | 'kundeToneCurve'
+  | 'defaultToneCurve';
+
 export interface LightroomSuggestion {
-  slider: string; // English Lightroom control name, e.g. "Highlights", "Sharpening (Detail panel)"
-  note: string;
+  slider: string; // English Lightroom control name, e.g. "Highlights / Whites" — never translated
+  kind: SuggestionKind; // looked up as `lr.${kind}` for the localized explanation
+  params?: { percent?: number };
 }
 
 export type AppStep = 'upload' | 'config' | 'processing' | 'results';

@@ -4,7 +4,25 @@ import { analyzeImage } from './imageAnalysis';
 import { computeDHash } from './perceptualHash';
 import { scorePhotos, selectTopN } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
+import {
+  ERR_CANVAS_UNAVAILABLE,
+  ERR_IMAGE_LOAD,
+  ERR_NO_PREVIEW,
+  ERR_PREVIEW_LOAD,
+  type PipelineErrorCode,
+} from './errorCodes';
 import type { PhotoResult, Purpose } from '../types';
+
+const ERROR_KEY_BY_CODE: Record<PipelineErrorCode, string> = {
+  [ERR_NO_PREVIEW]: 'error.noPreview',
+  [ERR_PREVIEW_LOAD]: 'error.previewLoadFailed',
+  [ERR_CANVAS_UNAVAILABLE]: 'error.canvasUnavailable',
+  [ERR_IMAGE_LOAD]: 'error.imageLoadFailed',
+};
+
+export interface CancelToken {
+  cancelled: boolean;
+}
 
 function yieldToUi(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
@@ -20,20 +38,32 @@ export function createInitialPhotoResults(files: File[]): PhotoResult[] {
 }
 
 /**
- * Runs the full per-photo pipeline (preview extraction, blur/exposure
+ * Runs the per-photo pipeline (preview extraction, blur/exposure
  * analysis, perceptual hash) sequentially so the UI thread stays
  * responsive and progress can be reported, then scores and pre-selects
- * the whole batch. Mutates and returns the same array instances so the
- * caller can re-render incrementally if desired.
+ * the whole batch. Photos already marked 'done' or 'error' are skipped,
+ * so re-running after the user goes back to change purpose/target count
+ * only redoes the cheap scoring step, not the expensive extraction.
+ * Checks `cancelToken.cancelled` between photos so a user-triggered
+ * cancel (going back mid-analysis) stops further work promptly; already
+ * in-flight work for the current photo is not aborted, just not scored.
  */
 export async function runPipeline(
   photos: PhotoResult[],
   purpose: Purpose,
   targetCount: number,
   onProgress: (done: number, total: number) => void,
+  cancelToken: CancelToken = { cancelled: false },
 ): Promise<PhotoResult[]> {
   for (let i = 0; i < photos.length; i++) {
+    if (cancelToken.cancelled) return photos;
+
     const photo = photos[i];
+    if (photo.status === 'done' || photo.status === 'error') {
+      onProgress(i + 1, photos.length);
+      continue;
+    }
+
     photo.status = 'processing';
     try {
       const preview = await extractPreview(photo.file);
@@ -57,12 +87,15 @@ export async function runPipeline(
       photo.status = 'done';
     } catch (err) {
       photo.status = 'error';
-      photo.error = err instanceof Error ? err.message : 'Unbekannter Fehler';
+      const code = err instanceof Error ? (err.message as PipelineErrorCode) : undefined;
+      photo.errorKey = (code && ERROR_KEY_BY_CODE[code]) || 'error.unknown';
     }
 
     onProgress(i + 1, photos.length);
     await yieldToUi();
   }
+
+  if (cancelToken.cancelled) return photos;
 
   scorePhotos(photos, purpose);
   selectTopN(photos, targetCount);

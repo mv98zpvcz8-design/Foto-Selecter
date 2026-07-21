@@ -118,35 +118,7 @@ export function scorePhotos(photos: PhotoResult[], purpose: Purpose): void {
       weights.exposure * (photo.exposureScore ?? 0) +
       weights.group * groupBonus(photo.groupRank ?? 1);
     photo.overallScore = Math.round(overall);
-    photo.reasoning = buildReasoning(photo);
   }
-}
-
-function buildReasoning(photo: PhotoResult): string {
-  const parts: string[] = [];
-
-  const s = photo.sharpnessScore ?? 0;
-  if (s >= 80) parts.push('sehr scharf');
-  else if (s >= 60) parts.push('scharf');
-  else if (s >= 40) parts.push('leicht unscharf');
-  else parts.push('unscharf');
-
-  const e = photo.exposureScore ?? 0;
-  const shadowHeavy = (photo.shadowClipping ?? 0) > (photo.highlightClipping ?? 0);
-  if (e >= 80) parts.push('gut belichtet');
-  else if (e >= 60) parts.push('akzeptabel belichtet');
-  else if (shadowHeavy) parts.push('teils unterbelichtet');
-  else parts.push('teils überbelichtet');
-
-  if ((photo.groupSize ?? 1) > 1) {
-    if (photo.groupRank === 1) {
-      parts.push(`beste von ${photo.groupSize} Fotos dieser Serie`);
-    } else {
-      parts.push(`${photo.groupRank}. von ${photo.groupSize} Fotos dieser Serie`);
-    }
-  }
-
-  return parts.join(', ');
 }
 
 /**
