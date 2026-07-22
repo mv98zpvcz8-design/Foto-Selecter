@@ -107,7 +107,9 @@ export function CarouselSection({ photos }: { photos: PhotoResult[] }) {
         ))}
       </div>
 
-      {openIndex != null && <PhotoDetailView photos={order} initialIndex={openIndex} onClose={() => setOpenIndex(null)} />}
+      {openIndex != null && (
+        <PhotoDetailView photos={order} initialIndex={openIndex} onClose={() => setOpenIndex(null)} imageOnly />
+      )}
     </div>
   );
 }

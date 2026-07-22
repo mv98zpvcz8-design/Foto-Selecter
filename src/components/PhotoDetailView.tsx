@@ -49,10 +49,13 @@ export function PhotoDetailView({
   photos,
   initialIndex,
   onClose,
+  imageOnly,
 }: {
   photos: PhotoResult[];
   initialIndex: number;
   onClose: () => void;
+  /** Suppresses the score breakdown/tags/Lightroom-suggestions panel — just the zoomable/navigable image. Used by the Instagram carousel, which is about arranging a clean visual sequence, not re-reviewing the analysis. */
+  imageOnly?: boolean;
 }) {
   const t = useT();
   const [index, setIndex] = useState(initialIndex);
@@ -187,7 +190,12 @@ export function PhotoDetailView({
 
   return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="detail-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className={`detail-panel${imageOnly ? ' detail-panel-image-only' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <button type="button" className="detail-close" onClick={onClose} aria-label={t('breakdown.close')}>
           ✕
         </button>
@@ -232,6 +240,7 @@ export function PhotoDetailView({
           )}
         </div>
 
+        {!imageOnly && (
         <div className="detail-body">
           <h3 className="detail-name">{photo.name}</h3>
           <p className="detail-reasoning">{reasoningText}</p>
@@ -300,6 +309,7 @@ export function PhotoDetailView({
             </div>
           )}
         </div>
+        )}
       </div>
     </div>,
     document.body,

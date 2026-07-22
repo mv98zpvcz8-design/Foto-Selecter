@@ -1636,4 +1636,7 @@ input, select {
   .detail-image img {
     max-height: 40vh;
   }
+  .detail-panel-image-only .detail-image img {
+    max-height: 90vh;
+  }
 }
