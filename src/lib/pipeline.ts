@@ -1,6 +1,6 @@
 import { extractPreview } from './rawPreview';
 import { extractExifMeta } from './exifMeta';
-import { analyzeImage } from './imageAnalysis';
+import { analyzeImage, createThumbnailBlob } from './imageAnalysis';
 import { computeDHash } from './perceptualHash';
 import { analyzeFacesSafe } from './faceAnalysis';
 import { analyzeInWorker, isWorkerAnalysisSupported, type WorkerAnalysisResult } from './workerPool';
@@ -8,6 +8,7 @@ import { scorePhotos, selectTopN, selectTriage } from './scoring';
 import { generateLightroomSuggestions } from './lightroomSuggestions';
 import { assignCarouselPositions } from './carousel';
 import { deriveSemanticTags } from './semanticTags';
+import { analysisCacheKey, applyCachedAnalysis, loadAnalysis, saveAnalysis } from './analysisCache';
 import {
   ERR_CANVAS_UNAVAILABLE,
   ERR_IMAGE_LOAD,
@@ -116,6 +117,25 @@ export async function runPipeline(
       photo.previewWidth = preview.width;
       photo.previewHeight = preview.height;
 
+      if (preview.width && preview.height) {
+        photo.orientation =
+          preview.width === preview.height ? 'square' : preview.width > preview.height ? 'landscape' : 'portrait';
+      }
+
+      // If this exact file (by name+size) was already fully analyzed in a
+      // prior session that got interrupted (tab closed, browser crashed,
+      // reload), skip straight past the expensive pixel/face analysis —
+      // only the thumbnail needs regenerating since blob URLs don't
+      // survive a reload. This is what makes resuming a 1000+ photo shoot
+      // fast instead of redoing hours of face detection from scratch.
+      const cached = await loadAnalysis(analysisCacheKey(photo.file));
+      if (cached) {
+        photo.thumbnailUrl = URL.createObjectURL(await createThumbnailBlob(preview.url));
+        applyCachedAnalysis(photo, cached);
+        photo.status = 'done';
+        return;
+      }
+
       const [meta, analysis, faces] = await Promise.all([
         extractExifMeta(photo.file),
         runPixelAnalysis(preview.url),
@@ -142,16 +162,12 @@ export async function runPipeline(
       photo.facesLookingAtCamera = faces.facesLookingAtCamera;
       photo.emotionScores = faces.emotionScores;
 
-      if (preview.width && preview.height) {
-        photo.orientation =
-          preview.width === preview.height ? 'square' : preview.width > preview.height ? 'landscape' : 'portrait';
-      }
-
       const subjectSharpnessRaw = faces.subjectSharpnessRaw ?? tileBasedSubjectSharpness(analysis.tileSharpnessRaw);
       photo.subjectSharpnessRaw = subjectSharpnessRaw;
       photo.selectiveFocusDetected = subjectSharpnessRaw != null && subjectSharpnessRaw > analysis.sharpnessRaw * 1.3;
 
       photo.status = 'done';
+      void saveAnalysis(photo);
     } catch (err) {
       photo.status = 'error';
       const code = err instanceof Error ? (err.message as PipelineErrorCode) : undefined;

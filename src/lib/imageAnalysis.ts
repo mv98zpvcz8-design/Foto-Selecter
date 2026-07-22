@@ -76,6 +76,17 @@ interface GrayscaleData {
   canvas: HTMLCanvasElement;
 }
 
+/**
+ * Produces just the grid thumbnail without the rest of the analysis —
+ * used when a photo's heavy measurements came from the resume cache
+ * (analysisCache.ts) instead of a fresh pass, since object URLs (and thus
+ * the canvas the worker path would have reused) don't survive a reload.
+ */
+export async function createThumbnailBlob(url: string): Promise<Blob> {
+  const img = await loadImageElement(url);
+  return canvasToBlob(grayscaleFromElement(img).canvas);
+}
+
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(

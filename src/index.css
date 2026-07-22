@@ -329,6 +329,18 @@ input, select {
   font-size: 14px;
 }
 
+.upload-cache-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  opacity: 0.7;
+}
+.cache-cleared-note {
+  font-size: 12.5px;
+  color: var(--good);
+}
+
 /* --- config screen --- */
 
 .config-panel {

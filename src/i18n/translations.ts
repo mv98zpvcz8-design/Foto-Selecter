@@ -24,6 +24,10 @@ const de: Record<string, string> = {
   'upload.removeAria': '{{name}} entfernen',
   'upload.iPadHint':
     'Auf dem iPad: aus Lightroom Mobile mehrere Bilder exportieren/teilen (z.B. nach "Auf meinem iPad" oder iCloud Drive), dann hier per Dateiauswahl oder Drag & Drop aus der Dateien-App hinzufügen — kein ZIP nötig, keine Desktop-Version erforderlich.',
+  'upload.clearAnalysisCache': 'Analyse-Cache leeren',
+  'upload.clearAnalysisCacheHint':
+    'Löscht lokal gespeicherte Analyseergebnisse, die eine unterbrochene Analyse großer Shootings beschleunigen. Fotos selbst sind davon nicht betroffen.',
+  'upload.analysisCacheCleared': 'Analyse-Cache geleert.',
 
   'config.modeLabel': 'Modus',
   'config.modeTopN': 'Feste Anzahl',
@@ -368,6 +372,10 @@ const en: Record<string, string> = {
   'upload.removeAria': 'Remove {{name}}',
   'upload.iPadHint':
     'On iPad: export/share several photos from Lightroom Mobile (e.g. to "On My iPad" or iCloud Drive), then add them here via the file picker or drag & drop from the Files app — no ZIP, no desktop version needed.',
+  'upload.clearAnalysisCache': 'Clear analysis cache',
+  'upload.clearAnalysisCacheHint':
+    "Deletes locally stored analysis results that speed up resuming an interrupted large shoot. Your photos themselves aren't affected.",
+  'upload.analysisCacheCleared': 'Analysis cache cleared.',
 
   'config.modeLabel': 'Mode',
   'config.modeTopN': 'Fixed count',

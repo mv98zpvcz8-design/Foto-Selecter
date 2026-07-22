@@ -63,7 +63,21 @@ Für den tatsächlichen Einsatzfall (Event-/Sportshootings mit mehreren hundert 
 - **Thumbnails statt Vollbild-Vorschau in der Galerie**: Die Analyse-Pipeline erzeugt ohnehin einen herunterskalierten Canvas (max. 480px) für Schärfe-/Farbanalyse — genau dieser wird als JPEG-Thumbnail wiederverwendet (`photo.thumbnailUrl`), ohne zusätzlichen Dekodier-Aufwand. Die Foto-Kacheln in Galerie, Carousel und Bestenlisten nutzen dieses Thumbnail; Detailansicht und Serien-Vergleich zeigen weiterhin die volle Vorschau (dort ist Bildqualität für den Vergleich wichtig).
 - **Grid-Virtualisierung** (`VirtualizedGrid.tsx`): Ab 60 Fotos in einer Ansicht werden nur die sichtbaren Zeilen (plus Overscan) tatsächlich als DOM-Knoten gemountet, der Rest wird durch Platzhalter-Elemente ersetzt. Verifiziert mit einem 80-Foto-Batch: nur ~24–40 Karten gleichzeitig im DOM statt aller 80.
 - **Object-URL-Leak behoben**: Vorschau- und Thumbnail-Blob-URLs wurden bisher nur beim kompletten Zurücksetzen freigegeben, nicht beim Entfernen einzelner Fotos oder "Alle entfernen" — das ist jetzt korrigiert (`revokePhotoUrls` in `AppState.tsx`).
+- **Wiederaufnahme nach Absturz/Tab-Schließen** (`src/lib/analysisCache.ts`): Die teuren, rein foto-bezogenen Messwerte (Schärfe, Belichtung, Gesichts-/Emotionserkennung, EXIF, Hash) werden direkt nach Abschluss pro Foto in einer eigenen IndexedDB zwischengespeichert — keyed nach Dateiname+Größe, ohne Vorschaubilder oder Rohdaten. Wird die Analyse eines großen Shootings unterbrochen (Tab geschlossen, Browser abgestürzt) und danach dieselben Dateien erneut hinzugefügt, überspringt die Pipeline für bereits analysierte Fotos die teure Gesichtserkennung/Pixelanalyse komplett und regeneriert nur das (günstige) Thumbnail. Gemessen an einem 10-Foto-Testlauf: ~19x schneller beim zweiten Durchgang. Ein "Analyse-Cache leeren"-Button im Upload-Screen löscht diesen Cache vollständig; er verfällt außerdem automatisch nach 2 Wochen und ist auf die letzten ~3000 Fotos begrenzt.
 - Die eigentliche Bildanalyse lief bereits vorher parallel in Web Workern (siehe oben).
+
+**Wichtig — was das nicht ist**: Das ist eine lokale Wiederaufnahme, kein Hintergrund-Job. Die Analyse läuft weiterhin nur, solange der Tab offen und aktiv ist; sie läuft nicht weiter, während die App im Hintergrund ist oder der Browser komplett geschlossen wurde. Ein echter, vom Tab unabhängiger Hintergrund-Job (aus der Anfrage: "Analyse darf nicht ausschließlich von einem offenen Browser-Tab abhängen") würde einen Server voraussetzen, den es in dieser Architektur bewusst nicht gibt — siehe "Architektur-Grenze" unten.
+
+## Architektur-Grenze: was ohne Backend nicht geht
+
+Diese App ist bewusst 100% clientseitig (keine Server-Uploads, kein Backend, keine Datenbank) — eine explizite Datenschutz-Entscheidung, da Event-/Sportfotos echte Personen zeigen. Das bedeutet aber auch, dass bestimmte Anfragen technisch nicht umsetzbar sind, unabhängig vom Aufwand:
+
+- **Analyse/Jobs unabhängig vom offenen Browser-Tab**: Es gibt keinen Hintergrund-Prozess, der weiterläuft, während der Tab geschlossen oder die App im Hintergrund ist. iOS Safari unterstützt zudem keine Background-Sync-API für PWAs. Das ginge nur mit einem Server.
+- **Adobe-Login / Lightroom-Album-Zugriff / Zurückschreiben in Lightroom**: OAuth erfordert ein Client-Secret, das serverseitig verwahrt werden muss (niemals im Client, siehe eigener Datenschutz-Grundsatz) — und eine Registrierung als Adobe-Developer-App, die nur der Projektinhaber selbst vornehmen kann.
+- **Serverseitig generierte Vorschaubilder, Datenbank-Constraints, verschlüsselte Übertragung, Zugriffskontrolle**: setzen alle einen Server voraus, den es hier nicht gibt.
+- **"Resumierbare, chunked Uploads"** im klassischen Sinn entfallen, weil nichts hochgeladen wird — Dateien bleiben immer auf dem Gerät. Was stattdessen gebaut wurde: eine lokale Wiederaufnahme des *Analyse*-Fortschritts nach einer unterbrochenen Sitzung (siehe oben).
+
+Eine Umstellung auf ein echtes Backend (inkl. Adobe-API-Integration) wäre ein separates, größeres Vorhaben mit Hosting-Kosten, einer echten Datenbank und einer bewussten Änderung des Datenschutz-Modells — und würde eine explizite Entscheidung dazu voraussetzen, nicht eine stillschweigende Umsetzung einzelner Punkte aus einer langen Anforderungsliste.
 
 ## Entwicklung
 

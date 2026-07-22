@@ -2,6 +2,7 @@ import { useRef, useState, type DragEvent } from 'react';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { SUPPORTED_EXTENSIONS } from '../lib/fileTypes';
+import { clearAnalysisCache } from '../lib/analysisCache';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -12,8 +13,13 @@ export function UploadScreen() {
   const { state, dispatch } = useAppState();
   const t = useT();
   const [dragging, setDragging] = useState(false);
+  const [cacheCleared, setCacheCleared] = useState(false);
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function handleClearAnalysisCache() {
+    clearAnalysisCache().then(() => setCacheCleared(true));
+  }
 
   function addFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
@@ -121,6 +127,18 @@ export function UploadScreen() {
             {t('upload.next')}
           </button>
         </div>
+      </div>
+
+      <div className="upload-cache-row">
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={handleClearAnalysisCache}
+          title={t('upload.clearAnalysisCacheHint')}
+        >
+          {t('upload.clearAnalysisCache')}
+        </button>
+        {cacheCleared && <span className="cache-cleared-note">{t('upload.analysisCacheCleared')}</span>}
       </div>
     </div>
   );
