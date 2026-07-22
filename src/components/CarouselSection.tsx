@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { PhotoResult } from '../types';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
+import { recordSignal } from '../lib/preferenceLearning';
 import { PhotoDetailView } from './PhotoDetailView';
 
 const DRAG_THRESHOLD_PX = 6;
@@ -69,6 +70,9 @@ export function CarouselSection({ photos }: { photos: PhotoResult[] }) {
     setDraggingId(null);
     if (ds?.dragging) {
       dispatch({ type: 'REORDER_CAROUSEL', orderedIds: order.map((p) => p.id) });
+      // the carousel is instagram-only, and the cover position is the
+      // strongest "which photo do you consider your best" signal here
+      if (order[0]) void recordSignal('instagram', order[0], 'carouselUsed');
     } else {
       setOpenIndex(index);
     }

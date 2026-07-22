@@ -7,6 +7,7 @@ import { ConfigScreen } from './components/ConfigScreen';
 import { ProcessingScreen } from './components/ProcessingScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { RestoreSessionDialog } from './components/RestoreSessionDialog';
+import { DashboardScreen } from './components/DashboardScreen';
 import { runPipeline, type CancelToken } from './lib/pipeline';
 import { resolveStyleHint, resolveWeights } from './lib/profiles';
 import { clearSession, loadSession, type SessionSnapshot } from './lib/persistence';
@@ -62,6 +63,7 @@ function AppContent() {
   const startedRef = useRef(false);
   const cancelTokenRef = useRef<CancelToken>({ cancelled: false });
   const [restoreSnapshot, setRestoreSnapshot] = useState<SessionSnapshot | null>(null);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   useWindowDropGuard();
 
@@ -168,14 +170,23 @@ function AppContent() {
               );
             })}
           </div>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowDashboard(true)}>
+            {t('dashboard.title')}
+          </button>
           <LanguageSwitch />
         </div>
       </header>
 
-      {state.step === 'upload' && <UploadScreen />}
-      {state.step === 'config' && <ConfigScreen />}
-      {state.step === 'processing' && <ProcessingScreen onCancel={handleCancelProcessing} />}
-      {state.step === 'results' && <ResultsScreen />}
+      {showDashboard ? (
+        <DashboardScreen onClose={() => setShowDashboard(false)} />
+      ) : (
+        <>
+          {state.step === 'upload' && <UploadScreen />}
+          {state.step === 'config' && <ConfigScreen />}
+          {state.step === 'processing' && <ProcessingScreen onCancel={handleCancelProcessing} />}
+          {state.step === 'results' && <ResultsScreen />}
+        </>
+      )}
 
       {restoreSnapshot && (
         <RestoreSessionDialog snapshot={restoreSnapshot} onRestore={handleRestore} onDiscard={handleDiscardRestore} />

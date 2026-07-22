@@ -4,6 +4,8 @@ import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { classifyReasoning } from '../lib/reasoning';
 import { formatReasoning } from '../i18n/format';
+import { resolveStyleHint } from '../lib/profiles';
+import { recordSignal, toPreferenceProfileKey } from '../lib/preferenceLearning';
 
 const MAX_SHOWN = 3;
 
@@ -60,15 +62,18 @@ function bestIndices(row: MetricRow): Set<number> {
  * "show all", just not part of the export).
  */
 export function SeriesCompareView({ groupPhotos, onClose }: { groupPhotos: PhotoResult[]; onClose: () => void }) {
-  const { dispatch } = useAppState();
+  const { state, dispatch } = useAppState();
   const t = useT();
 
   const sorted = [...groupPhotos].sort((a, b) => (a.groupRank ?? 1) - (b.groupRank ?? 1)).slice(0, MAX_SHOWN);
   const groupId = groupPhotos[0]?.groupId;
   const metricRows = buildMetricRows(sorted);
+  const preferenceProfileKey = toPreferenceProfileKey(resolveStyleHint(state.profileRef, state.customPresets));
 
   function pick(id: string) {
     if (groupId == null) return;
+    const picked = sorted.find((p) => p.id === id);
+    if (picked) void recordSignal(preferenceProfileKey, picked, 'seriesWinner');
     dispatch({ type: 'SELECT_FROM_GROUP', groupId, id });
   }
 

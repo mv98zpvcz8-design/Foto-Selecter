@@ -4,6 +4,8 @@ import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { classifyReasoning } from '../lib/reasoning';
 import { formatReasoning, formatSuggestionNote } from '../i18n/format';
+import { resolveStyleHint } from '../lib/profiles';
+import { recordSignal, toPreferenceProfileKey } from '../lib/preferenceLearning';
 import { PhotoDetailView } from './PhotoDetailView';
 import { SeriesCompareView } from './SeriesCompareView';
 
@@ -12,6 +14,17 @@ export function PhotoCard({ photo, allPhotos, index }: { photo: PhotoResult; all
   const t = useT();
   const [showDetail, setShowDetail] = useState(false);
   const [showSeries, setShowSeries] = useState(false);
+  const preferenceProfileKey = toPreferenceProfileKey(resolveStyleHint(state.profileRef, state.customPresets));
+
+  function toggleSelected() {
+    void recordSignal(preferenceProfileKey, photo, photo.isSelected ? 'rejected' : 'selected');
+    dispatch({ type: 'TOGGLE_SELECTED', id: photo.id });
+  }
+
+  function toggleFavorite() {
+    void recordSignal('general', photo, photo.isFavorite ? 'unfavorite' : 'favorite');
+    dispatch({ type: 'TOGGLE_FAVORITE', id: photo.id });
+  }
 
   if (photo.status === 'error') {
     return (
@@ -48,7 +61,7 @@ export function PhotoCard({ photo, allPhotos, index }: { photo: PhotoResult; all
           type="checkbox"
           className="select-checkbox"
           checked={!!photo.isSelected}
-          onChange={() => dispatch({ type: 'TOGGLE_SELECTED', id: photo.id })}
+          onChange={toggleSelected}
           aria-label={t('photo.selectAria', { name: photo.name })}
         />
         {(photo.thumbnailUrl ?? photo.previewUrl) && (
@@ -76,7 +89,7 @@ export function PhotoCard({ photo, allPhotos, index }: { photo: PhotoResult; all
           className={`favorite-btn${photo.isFavorite ? ' active' : ''}`}
           title={t('photo.toggleFavorite')}
           aria-label={t('photo.toggleFavorite')}
-          onClick={() => dispatch({ type: 'TOGGLE_FAVORITE', id: photo.id })}
+          onClick={toggleFavorite}
         >
           {photo.isFavorite ? '★' : '☆'}
         </button>

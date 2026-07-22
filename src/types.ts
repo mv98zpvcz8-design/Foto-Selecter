@@ -226,3 +226,69 @@ export interface ShootingSnapshot {
   emotionShare: number; // share of photos with a detected strong emotion
   focalLengthBuckets: Record<string, { count: number; avgSharpnessScore: number }>;
 }
+
+// --- Learn My Style (local, incremental preference learning) ---
+
+export type PreferenceProfileKey = 'general' | 'kunde' | 'instagram' | 'portfolio' | 'sport' | 'event';
+
+export const PREFERENCE_PROFILE_KEYS: PreferenceProfileKey[] = [
+  'general',
+  'kunde',
+  'instagram',
+  'portfolio',
+  'sport',
+  'event',
+];
+
+export type PreferenceSignal =
+  | 'selected'
+  | 'rejected'
+  | 'favorite'
+  | 'unfavorite'
+  | 'seriesWinner'
+  | 'carouselUsed';
+
+/**
+ * Fixed, named feature vector extracted from a photo's already-computed
+ * signals — no embeddings, no separate model. Every value is normalized
+ * to roughly 0-1 so a simple weighted dot-product is a meaningful
+ * similarity measure. See lib/preferenceLearning.ts.
+ */
+export interface PreferenceFeatures {
+  sharpness: number;
+  exposure: number;
+  faces: number;
+  portrait: number;
+  landscape: number;
+  square: number;
+  bw: number;
+  color: number;
+  emotion: number;
+  crowd: number;
+  portraitLikely: number;
+  groupPhoto: number;
+  warm: number;
+  cool: number;
+  highContrast: number;
+}
+
+export type PreferenceStatus = 'insufficient' | 'early' | 'usable' | 'wellPersonalized';
+
+/** Running weighted centroid of liked vs. disliked feature vectors for one profile — the whole "model". */
+export interface PreferenceProfileState {
+  profileKey: PreferenceProfileKey;
+  likedSum: PreferenceFeatures;
+  likedCount: number;
+  dislikedSum: PreferenceFeatures;
+  dislikedCount: number;
+  updatedAt: number;
+}
+
+export interface PreferenceEventRecord {
+  id: string;
+  profileKey: PreferenceProfileKey;
+  signal: PreferenceSignal;
+  photoKey: string; // name+size, same convention as analysisCache
+  recordedAt: number;
+  excluded?: boolean; // user explicitly excluded this decision from learning
+}

@@ -67,7 +67,12 @@ export async function saveShootingSnapshot(snapshot: ShootingSnapshot): Promise<
   try {
     const db = await openDb();
     const all = await getAllSnapshotsFromDb(db);
-    const trimmed = [...all, snapshot].sort((a, b) => b.completedAt - a.completedAt).slice(0, MAX_HISTORY_ENTRIES);
+    // Upsert by id — re-importing a backup, or re-saving the same shoot,
+    // replaces the existing entry instead of duplicating it.
+    const withoutDuplicate = all.filter((s) => s.id !== snapshot.id);
+    const trimmed = [...withoutDuplicate, snapshot]
+      .sort((a, b) => b.completedAt - a.completedAt)
+      .slice(0, MAX_HISTORY_ENTRIES);
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
