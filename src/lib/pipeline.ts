@@ -136,6 +136,7 @@ export async function runPipeline(
       photo.hash = analysis.hash;
       photo.colorStats = analysis.colorStats;
       photo.motionBlurRatio = analysis.motionBlurRatio;
+      photo.thumbnailUrl = URL.createObjectURL(analysis.thumbnailBlob);
       photo.facesDetected = faces.facesDetected;
       photo.facesWithClosedEyes = faces.facesWithClosedEyes;
       photo.facesLookingAtCamera = faces.facesLookingAtCamera;

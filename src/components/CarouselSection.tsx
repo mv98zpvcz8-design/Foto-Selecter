@@ -96,7 +96,9 @@ export function CarouselSection({ photos }: { photos: PhotoResult[] }) {
             onPointerCancel={handlePointerCancel}
           >
             <span className="carousel-position">{index + 1}</span>
-            {photo.previewUrl && <img src={photo.previewUrl} alt={photo.name} draggable={false} />}
+            {(photo.thumbnailUrl ?? photo.previewUrl) && (
+              <img src={photo.thumbnailUrl ?? photo.previewUrl} alt={photo.name} draggable={false} />
+            )}
           </div>
         ))}
       </div>

@@ -62,6 +62,7 @@ export function UploadScreen() {
         <div className="dropzone-icon">📁</div>
         <h2>{t('upload.title')}</h2>
         <p>{t('upload.subtitle', { formats: SUPPORTED_EXTENSIONS.map((e) => `.${e.toUpperCase()}`).join(', ') })}</p>
+        <p className="dropzone-hint">{t('upload.iPadHint')}</p>
         <input
           ref={inputRef}
           type="file"

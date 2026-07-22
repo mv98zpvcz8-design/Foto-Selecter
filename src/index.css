@@ -254,6 +254,11 @@ input, select {
   max-width: 480px;
   margin: 0 auto;
 }
+.dropzone-hint {
+  color: var(--label-tertiary) !important;
+  font-size: 12.5px !important;
+  margin-top: 10px !important;
+}
 
 .file-input-hidden {
   display: none;
@@ -758,6 +763,35 @@ input, select {
   color: var(--bad);
 }
 
+.detected-tags {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--separator);
+}
+.detected-tags-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.detected-tags-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border-radius: 14px;
+  font-size: 12px;
+  color: var(--label-secondary);
+}
+.tag-confidence {
+  color: var(--accent-strong);
+  font-weight: 600;
+  font-size: 11px;
+}
+
 .lr-suggestions {
   margin-top: 10px;
   padding-top: 12px;
@@ -1149,6 +1183,36 @@ input, select {
 }
 .series-compare-info .photo-reasoning {
   font-size: 12.5px;
+}
+.series-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 18px;
+  font-size: 13px;
+}
+.series-compare-table th,
+.series-compare-table td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--separator);
+  color: var(--label-secondary);
+}
+.series-compare-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--label-tertiary);
+  font-weight: 600;
+}
+.series-compare-table td:first-child,
+.series-compare-table th:first-child {
+  text-align: left;
+  color: var(--label);
+  font-weight: 500;
+}
+.series-compare-best {
+  color: var(--good) !important;
+  font-weight: 700;
 }
 
 /* --- filter panel --- */

@@ -53,6 +53,8 @@ export interface PhotoResult {
   previewUrl?: string;
   previewWidth?: number;
   previewHeight?: number;
+  /** Small downscaled JPEG for grid display — reused from the analysis canvas, not a fresh full-preview decode. */
+  thumbnailUrl?: string;
 
   captureTime?: Date | null;
   camera?: string;

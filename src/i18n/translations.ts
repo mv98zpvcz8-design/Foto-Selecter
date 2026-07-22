@@ -22,6 +22,8 @@ const de: Record<string, string> = {
   'upload.noneSelected': 'Noch keine Fotos ausgewählt',
   'upload.readyCount': '{{count}} Foto(s) bereit',
   'upload.removeAria': '{{name}} entfernen',
+  'upload.iPadHint':
+    'Auf dem iPad: aus Lightroom Mobile mehrere Bilder exportieren/teilen (z.B. nach "Auf meinem iPad" oder iCloud Drive), dann hier per Dateiauswahl oder Drag & Drop aus der Dateien-App hinzufügen — kein ZIP nötig, keine Desktop-Version erforderlich.',
 
   'config.modeLabel': 'Modus',
   'config.modeTopN': 'Feste Anzahl',
@@ -91,6 +93,8 @@ const de: Record<string, string> = {
   'series.compareTitle': 'Serien-Vergleich ({{size}} Fotos)',
   'series.pickThisOne': 'Dieses auswählen',
   'series.thisOneSelected': '✓ Ausgewählt',
+  'series.compareEyesOpen': 'Augen offen',
+  'series.compareEmotion': 'Stärkste Emotion',
 
   'reasoning.sharpness.excellent': 'sehr scharf',
   'reasoning.sharpness.good': 'scharf',
@@ -112,6 +116,9 @@ const de: Record<string, string> = {
   'photo.expandDetail': 'Foto groß anzeigen',
   'detail.prev': 'Vorheriges Foto',
   'detail.next': 'Nächstes Foto',
+  'detail.detectedTagsHeading': 'Erkannte Merkmale',
+  'tag.closedEyes': 'Geschlossene Augen erkannt',
+  'tag.faceOccludedLikely': 'Gesicht möglicherweise verdeckt',
 
   'breakdown.title': 'Score-Aufschlüsselung',
   'breakdown.sharpness': 'Schärfe',
@@ -359,6 +366,8 @@ const en: Record<string, string> = {
   'upload.noneSelected': 'No photos selected yet',
   'upload.readyCount': '{{count}} photo(s) ready',
   'upload.removeAria': 'Remove {{name}}',
+  'upload.iPadHint':
+    'On iPad: export/share several photos from Lightroom Mobile (e.g. to "On My iPad" or iCloud Drive), then add them here via the file picker or drag & drop from the Files app — no ZIP, no desktop version needed.',
 
   'config.modeLabel': 'Mode',
   'config.modeTopN': 'Fixed count',
@@ -428,6 +437,8 @@ const en: Record<string, string> = {
   'series.compareTitle': 'Series comparison ({{size}} photos)',
   'series.pickThisOne': 'Pick this one',
   'series.thisOneSelected': '✓ Selected',
+  'series.compareEyesOpen': 'Eyes open',
+  'series.compareEmotion': 'Strongest emotion',
 
   'reasoning.sharpness.excellent': 'very sharp',
   'reasoning.sharpness.good': 'sharp',
@@ -449,6 +460,9 @@ const en: Record<string, string> = {
   'photo.expandDetail': 'View photo large',
   'detail.prev': 'Previous photo',
   'detail.next': 'Next photo',
+  'detail.detectedTagsHeading': 'Detected characteristics',
+  'tag.closedEyes': 'Closed eyes detected',
+  'tag.faceOccludedLikely': 'Face possibly occluded',
 
   'breakdown.title': 'Score breakdown',
   'breakdown.sharpness': 'Sharpness',

@@ -28,6 +28,7 @@ interface AnalysisSuccess {
   hash: bigint;
   colorStats: ColorStats;
   motionBlurRatio: number;
+  thumbnailBlob: Blob;
 }
 
 interface AnalysisFailure {
@@ -76,6 +77,12 @@ self.onmessage = async (e: MessageEvent<AnalysisJob>) => {
 
     bitmap.close();
 
+    // Reuses the already-downscaled analysis canvas (<=ANALYSIS_MAX_DIM on
+    // the long side) as the grid thumbnail — no extra decode/resize pass,
+    // and it keeps large batches (100s-1000+ photos) from holding a
+    // full-resolution embedded preview per visible grid card.
+    const thumbnailBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.82 });
+
     const result: AnalysisSuccess = {
       id,
       sharpnessRaw,
@@ -86,6 +93,7 @@ self.onmessage = async (e: MessageEvent<AnalysisJob>) => {
       hash,
       colorStats: colors,
       motionBlurRatio,
+      thumbnailBlob,
     };
     (self as unknown as Worker).postMessage(result);
   } catch (err) {

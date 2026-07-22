@@ -51,9 +51,9 @@ export function PhotoCard({ photo, allPhotos, index }: { photo: PhotoResult; all
           onChange={() => dispatch({ type: 'TOGGLE_SELECTED', id: photo.id })}
           aria-label={t('photo.selectAria', { name: photo.name })}
         />
-        {photo.previewUrl && (
+        {(photo.thumbnailUrl ?? photo.previewUrl) && (
           <img
-            src={photo.previewUrl}
+            src={photo.thumbnailUrl ?? photo.previewUrl}
             alt={photo.name}
             loading="lazy"
             className="photo-thumb-img"

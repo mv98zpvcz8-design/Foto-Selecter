@@ -9,6 +9,7 @@ export interface WorkerAnalysisResult {
   hash: bigint;
   colorStats: ColorStats;
   motionBlurRatio: number;
+  thumbnailBlob: Blob;
 }
 
 interface PendingJob {

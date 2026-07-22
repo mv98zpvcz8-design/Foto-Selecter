@@ -5,6 +5,24 @@ import { useT } from '../i18n/useT';
 import { getScoreNotes } from '../lib/scoreNotes';
 import { classifyReasoning } from '../lib/reasoning';
 import { formatReasoning, formatSuggestionNote } from '../i18n/format';
+import { FILTER_DEFS } from '../lib/filters';
+
+// Below this, a detected tag is more noise than signal — not worth
+// listing even in the full detail breakdown.
+const TAG_DISPLAY_THRESHOLD = 0.4;
+
+// Most semantic tags have a matching positively-phrased filter chip whose
+// label we can reuse (e.g. tagKey 'emotion' -> filter 'emotion'); a couple
+// only exist as negated filters ("no closed eyes"), so those fall back to
+// a dedicated tag.* label instead of double-negating the text.
+const TAG_LABEL_KEY: Partial<Record<string, string>> = Object.fromEntries(
+  Object.values(FILTER_DEFS)
+    .filter((def) => def.tagKey && !def.negate)
+    .map((def) => [def.tagKey as string, def.labelKey]),
+);
+function tagLabelKey(key: string): string {
+  return TAG_LABEL_KEY[key] ?? `tag.${key}`;
+}
 
 const SWIPE_THRESHOLD_PX = 50;
 const MAX_ZOOM = 4;
@@ -154,6 +172,9 @@ export function PhotoDetailView({
   const weights = photo.appliedWeights;
   const notes = getScoreNotes(photo);
   const reasoningText = formatReasoning(classifyReasoning(photo), t);
+  const detectedTags = (photo.semanticTags ?? [])
+    .filter((tag) => tag.confidence >= TAG_DISPLAY_THRESHOLD)
+    .sort((a, b) => b.confidence - a.confidence);
 
   const rows = weights
     ? [
@@ -248,6 +269,20 @@ export function PhotoDetailView({
               {notes.map((note, i) => (
                 <p key={i}>{t(note.key, note.vars)}</p>
               ))}
+            </div>
+          )}
+
+          {detectedTags.length > 0 && (
+            <div className="detected-tags">
+              <div className="lr-suggestions-heading">{t('detail.detectedTagsHeading')}</div>
+              <ul className="detected-tags-list">
+                {detectedTags.map((tag) => (
+                  <li key={tag.key}>
+                    <span>{t(tagLabelKey(tag.key))}</span>
+                    <span className="tag-confidence">{Math.round(tag.confidence * 100)}%</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

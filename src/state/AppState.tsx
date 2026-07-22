@@ -101,6 +101,12 @@ function createInitialState(): AppState {
   };
 }
 
+/** Releases a photo's blob URLs (full preview + grid thumbnail) so removing/clearing large batches doesn't leak memory. */
+function revokePhotoUrls(photo: PhotoResult): void {
+  if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
+  if (photo.thumbnailUrl) URL.revokeObjectURL(photo.thumbnailUrl);
+}
+
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'ADD_FILES': {
@@ -122,9 +128,13 @@ function reducer(state: AppState, action: Action): AppState {
         rejectedFileNames: [...state.rejectedFileNames, ...rejected],
       };
     }
-    case 'REMOVE_FILE':
+    case 'REMOVE_FILE': {
+      const removed = state.photos.find((p) => p.id === action.id);
+      if (removed) revokePhotoUrls(removed);
       return { ...state, photos: state.photos.filter((p) => p.id !== action.id) };
+    }
     case 'CLEAR_FILES':
+      for (const photo of state.photos) revokePhotoUrls(photo);
       return { ...state, photos: [], rejectedFileNames: [] };
     case 'SET_TARGET_COUNT':
       return { ...state, targetCount: Math.max(1, Math.round(action.count)) };
@@ -219,9 +229,7 @@ function reducer(state: AppState, action: Action): AppState {
         searchUnmatchedTerms: [],
       };
     case 'RESET': {
-      for (const photo of state.photos) {
-        if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
-      }
+      for (const photo of state.photos) revokePhotoUrls(photo);
       return { ...createInitialState(), lang: state.lang, customPresets: state.customPresets };
     }
     default:

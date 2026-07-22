@@ -26,6 +26,7 @@ export interface RawAnalysis {
   meanLuminance: number; // 0-255
   colorStats: ColorStats;
   motionBlurRatio: number;
+  thumbnailBlob: Blob;
 }
 
 /**
@@ -51,6 +52,10 @@ export async function analyzeImage(url: string): Promise<RawAnalysis> {
   const motionBlurRatio =
     Math.max(gradientEnergy.horizontal, gradientEnergy.vertical) /
     Math.max(Math.min(gradientEnergy.horizontal, gradientEnergy.vertical), 1e-6);
+  // Reuses the same downscaled canvas as the grid thumbnail — no extra
+  // decode/resize pass, and it keeps large batches from holding a
+  // full-resolution embedded preview per visible grid card.
+  const thumbnailBlob = await canvasToBlob(gray.canvas);
   return {
     sharpnessRaw,
     tileSharpnessRaw,
@@ -59,6 +64,7 @@ export async function analyzeImage(url: string): Promise<RawAnalysis> {
     meanLuminance,
     colorStats: colors,
     motionBlurRatio,
+    thumbnailBlob,
   };
 }
 
@@ -67,6 +73,17 @@ interface GrayscaleData {
   rgba: Uint8ClampedArray;
   width: number;
   height: number;
+  canvas: HTMLCanvasElement;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error(ERR_CANVAS_UNAVAILABLE))),
+      'image/jpeg',
+      0.82,
+    );
+  });
 }
 
 function loadImageElement(url: string): Promise<HTMLImageElement> {
@@ -99,7 +116,7 @@ function grayscaleFromElement(img: HTMLImageElement, sourceRect?: Rect, maxDim =
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
   const { data } = ctx.getImageData(0, 0, width, height);
 
-  return { data: rgbaToGrayscale(data), rgba: data, width, height };
+  return { data: rgbaToGrayscale(data), rgba: data, width, height, canvas };
 }
 
 /**

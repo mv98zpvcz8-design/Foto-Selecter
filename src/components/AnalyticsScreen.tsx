@@ -192,7 +192,7 @@ export function AnalyticsScreen({ photos, purpose }: { photos: PhotoResult[]; pu
                 <div className="best-of-title">{t(cat.labelKey)}</div>
                 <div className="best-of-thumbs">
                   {cat.photos.map((p) => (
-                    <img key={p.id} src={p.previewUrl} alt={p.name} loading="lazy" />
+                    <img key={p.id} src={p.thumbnailUrl ?? p.previewUrl} alt={p.name} loading="lazy" />
                   ))}
                 </div>
                 {cat.filterKey && (

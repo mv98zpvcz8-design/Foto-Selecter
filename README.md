@@ -56,6 +56,15 @@ Für den Vergleich zu früheren Shootings speichert die App **ausschließlich ag
 
 **Wichtige methodische Einschränkung**: Der Schärfe-Score wird pro Batch perzentil-normalisiert (relativ zum eigenen 5./95. Perzentil dieses Durchgangs) — zwei Shootings mit demselben Schärfe-Score-Durchschnitt sind dadurch nicht zwangsläufig absolut gleich scharf. Deshalb vergleicht das Resümee bewusst **keinen** Schärfe-Trend über mehrere Shootings hinweg (nur Belichtung, Emotion-Anteil und Hochformat-Anteil, die auf festen/absoluten Maßstäben beruhen).
 
+## Große Shootings (100–1000+ Fotos)
+
+Für den tatsächlichen Einsatzfall (Event-/Sportshootings mit mehreren hundert bis über tausend Bildern) gibt es gezielte Performance-Maßnahmen:
+
+- **Thumbnails statt Vollbild-Vorschau in der Galerie**: Die Analyse-Pipeline erzeugt ohnehin einen herunterskalierten Canvas (max. 480px) für Schärfe-/Farbanalyse — genau dieser wird als JPEG-Thumbnail wiederverwendet (`photo.thumbnailUrl`), ohne zusätzlichen Dekodier-Aufwand. Die Foto-Kacheln in Galerie, Carousel und Bestenlisten nutzen dieses Thumbnail; Detailansicht und Serien-Vergleich zeigen weiterhin die volle Vorschau (dort ist Bildqualität für den Vergleich wichtig).
+- **Grid-Virtualisierung** (`VirtualizedGrid.tsx`): Ab 60 Fotos in einer Ansicht werden nur die sichtbaren Zeilen (plus Overscan) tatsächlich als DOM-Knoten gemountet, der Rest wird durch Platzhalter-Elemente ersetzt. Verifiziert mit einem 80-Foto-Batch: nur ~24–40 Karten gleichzeitig im DOM statt aller 80.
+- **Object-URL-Leak behoben**: Vorschau- und Thumbnail-Blob-URLs wurden bisher nur beim kompletten Zurücksetzen freigegeben, nicht beim Entfernen einzelner Fotos oder "Alle entfernen" — das ist jetzt korrigiert (`revokePhotoUrls` in `AppState.tsx`).
+- Die eigentliche Bildanalyse lief bereits vorher parallel in Web Workern (siehe oben).
+
 ## Entwicklung
 
 ```bash
@@ -81,3 +90,5 @@ npm run lint     # oxlint
 - Shot Analytics/Resümee: Die "Vergleich zu früheren Shootings"-Funktion vergleicht bewusst nur Belichtung, Emotionsanteil und Hochformat-Anteil über Shootings hinweg (siehe Abschnitt oben) — **nicht** die Schärfequote, weil diese pro Batch perzentil-normalisiert und daher nicht absolut vergleichbar ist. Die Auswahlquote wird ebenfalls nicht über Shootings verglichen, da sie im Zielanzahl-Modus nur die vom Nutzer eingegebene Zahl widerspiegelt, keine Qualitätsaussage.
 - "Top-Bilder für Kunde/Instagram/Portfolio" in Shot Analytics basieren auf dem Score des **aktuell aktiven** Profils — es gibt noch keinen separaten, gleichzeitig berechneten Instagram-/Kunden-/Portfolio-Score (das ist erst mit einem künftigen "Instagram Coach"-Modul geplant). Für eine andere Gewichtung Profil wechseln und neu analysieren.
 - Alle neuen Module (Filter, Shot Analytics, Résumé) wurden mit synthetischen Testbildern per Playwright end-to-end verifiziert (inkl. Mehrfach-Shootings zur Verlaufs-/Vergleichsprüfung), nicht mit echten Fotos/Gesichtern aus einem realen Shooting.
+- Die Grid-Virtualisierung schätzt die Kartenhöhe pauschal (kein exaktes Messen pro Karte); bei stark unterschiedlich hohen Karten (z. B. sehr lange Lightroom-Empfehlungslisten) kann die Scroll-Position minimal abweichen — das führt höchstens zu etwas zu früh/spät gemounteten Karten, nicht zu einem kaputten Layout. Getestet mit einem 80-Foto-Batch; das Verhalten bei echten 1000+-Foto-Shootings mit sehr unterschiedlichen Karteninhalten wurde nicht separat verifiziert.
+- Alle Analyse- und Worker-Schritte laufen ausschließlich, solange der Browser-Tab offen und aktiv ist — es gibt keinen Hintergrund-Job, der unabhängig vom Tab weiterläuft (dafür bräuchte es einen Server; siehe Architektur-Hinweis unten). Wird der Tab geschlossen oder der Browser beendet, bevor die Analyse fertig ist, muss sie neu gestartet werden (die Foto-Auswahl selbst bleibt dank Auto-Speicherung erhalten, der Analyse-Fortschritt nicht).

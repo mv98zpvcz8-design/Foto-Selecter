@@ -5,6 +5,7 @@ import { PhotoCard } from './PhotoCard';
 import { CarouselSection } from './CarouselSection';
 import { FilterPanel } from './FilterPanel';
 import { AnalyticsScreen } from './AnalyticsScreen';
+import { VirtualizedGrid } from './VirtualizedGrid';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 import { TIER_EDIT_THRESHOLD, TIER_POTENTIAL_THRESHOLD, tierForScore } from '../lib/scoring';
@@ -28,11 +29,10 @@ function TierSection({
     <>
       <div className="section-heading">{t(titleKey)} ({photos.length})</div>
       <div className="tier-desc">{t(descKey, descVars)}</div>
-      <div className="photo-grid">
-        {photos.map((p, i) => (
-          <PhotoCard key={p.id} photo={p} allPhotos={photos} index={i} />
-        ))}
-      </div>
+      <VirtualizedGrid
+        items={photos}
+        renderItem={(p, i) => <PhotoCard key={p.id} photo={p} allPhotos={photos} index={i} />}
+      />
     </>
   );
 }
@@ -195,11 +195,10 @@ export function ResultsScreen() {
               {t(visiblePhotos.length > 0 ? 'results.emptyFiltered' : 'results.empty')}
             </div>
           ) : (
-            <div className="photo-grid">
-              {sortedVisible.map((p, i) => (
-                <PhotoCard key={p.id} photo={p} allPhotos={sortedVisible} index={i} />
-              ))}
-            </div>
+            <VirtualizedGrid
+              items={sortedVisible}
+              renderItem={(p, i) => <PhotoCard key={p.id} photo={p} allPhotos={sortedVisible} index={i} />}
+            />
           )}
 
           {errorPhotos.length > 0 && (
