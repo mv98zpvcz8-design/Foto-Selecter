@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { SUPPORTED_EXTENSIONS } from '../lib/fileTypes';
@@ -16,6 +16,19 @@ export function UploadScreen() {
   const [cacheCleared, setCacheCleared] = useState(false);
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  // Not a standard HTML attribute React/TS knows about — set imperatively so
+  // this input picks a whole folder's contents in one go. Meant for a
+  // Lightroom Mobile export destination folder (e.g. "On My iPad/Lightroom"),
+  // so re-exporting an album and re-selecting the same folder is a 2-step
+  // refresh instead of re-picking every photo individually.
+  useEffect(() => {
+    if (folderInputRef.current) {
+      folderInputRef.current.setAttribute('webkitdirectory', '');
+      folderInputRef.current.setAttribute('directory', '');
+    }
+  }, []);
 
   function handleClearAnalysisCache() {
     clearAnalysisCache().then(() => setCacheCleared(true));
@@ -69,12 +82,31 @@ export function UploadScreen() {
         <h2>{t('upload.title')}</h2>
         <p>{t('upload.subtitle', { formats: SUPPORTED_EXTENSIONS.map((e) => `.${e.toUpperCase()}`).join(', ') })}</p>
         <p className="dropzone-hint">{t('upload.iPadHint')}</p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            folderInputRef.current?.click();
+          }}
+        >
+          {t('upload.selectFolder')}
+        </button>
+        <p className="dropzone-hint">{t('upload.selectFolderHint')}</p>
         <input
           ref={inputRef}
           type="file"
           multiple
           accept={SUPPORTED_EXTENSIONS.map((e) => `.${e}`).join(',')}
           className="file-input-hidden"
+          onChange={(e) => addFiles(e.target.files)}
+        />
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          className="file-input-hidden"
+          onClick={(e) => e.stopPropagation()}
           onChange={(e) => addFiles(e.target.files)}
         />
       </div>
