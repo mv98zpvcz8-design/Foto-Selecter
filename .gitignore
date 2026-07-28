@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment secrets (Adobe Client Secret, session encryption key, ...)
+.env
+.env.local
+.env.*.local
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

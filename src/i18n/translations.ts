@@ -24,9 +24,6 @@ const de: Record<string, string> = {
   'upload.removeAria': '{{name}} entfernen',
   'upload.iPadHint':
     'Auf dem iPad: aus Lightroom Mobile mehrere Bilder exportieren/teilen (z.B. nach "Auf meinem iPad" oder iCloud Drive), dann hier per Dateiauswahl oder Drag & Drop aus der Dateien-App hinzufügen — kein ZIP nötig, keine Desktop-Version erforderlich.',
-  'upload.selectFolder': 'Ordner auswählen',
-  'upload.selectFolderHint':
-    'Praktisch für ein Lightroom-Album: einmalig alle Fotos des Albums in einen festen Ordner exportieren (z.B. "Auf meinem iPad/Lightroom-Export" oder per lightroom.adobe.com am Rechner herunterladen), danach hier immer denselben Ordner auswählen statt einzelne Dateien anzutippen.',
   'upload.clearAnalysisCache': 'Analyse-Cache leeren',
   'upload.clearAnalysisCacheHint':
     'Löscht lokal gespeicherte Analyseergebnisse, die eine unterbrochene Analyse großer Shootings beschleunigen. Fotos selbst sind davon nicht betroffen.',
@@ -437,9 +434,6 @@ const en: Record<string, string> = {
   'upload.removeAria': 'Remove {{name}}',
   'upload.iPadHint':
     'On iPad: export/share several photos from Lightroom Mobile (e.g. to "On My iPad" or iCloud Drive), then add them here via the file picker or drag & drop from the Files app — no ZIP, no desktop version needed.',
-  'upload.selectFolder': 'Select folder',
-  'upload.selectFolderHint':
-    "Handy for a Lightroom album: export all of the album's photos once into one fixed folder (e.g. \"On My iPad/Lightroom Export\", or downloaded via lightroom.adobe.com on a computer), then just pick that same folder here each time instead of tapping individual files.",
   'upload.clearAnalysisCache': 'Clear analysis cache',
   'upload.clearAnalysisCacheHint':
     "Deletes locally stored analysis results that speed up resuming an interrupted large shoot. Your photos themselves aren't affected.",
