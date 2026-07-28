@@ -32,6 +32,12 @@ export default defineConfig({
         // this is meant to be usable on location at a shoot without wifi.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json,bin}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // Workbox's default SPA navigateFallback serves the cached
+        // index.html for any navigation that isn't a precached asset —
+        // that silently swallowed full-page navigations to /api/auth/login
+        // (an OAuth redirect, not an SPA route), making the service worker
+        // return a cached 200 page instead of ever reaching Vercel.
+        navigateFallbackDenylist: [/^\/api\//],
       },
       devOptions: {
         enabled: false,
