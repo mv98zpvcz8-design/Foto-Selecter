@@ -3,7 +3,12 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.api.tsbuildinfo",
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
-    "types": ["node"],
+    // Deliberately no @types/node — Edge Functions aren't Node.js, and an
+    // empty array (rather than omitting "types") stops TS from
+    // auto-including every @types/* package, which would silently bring
+    // process/Buffer/etc. back into scope and hide the exact class of
+    // mismatch that caused a real Vercel build failure (TS2591).
+    "types": [],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "skipLibCheck": true,
