@@ -1,7 +1,7 @@
-import { parseCookies, serializeCookie } from './cookies';
-import { decryptSession, encryptSession } from './session';
-import { requiredEnv } from './env';
-import { refreshAccessToken, type StoredSession } from './adobeAuth';
+import { parseCookies, serializeCookie } from './cookies.js';
+import { decryptSession, encryptSession } from './session.js';
+import { requiredEnv } from './env.js';
+import { refreshAccessToken, type StoredSession } from './adobeAuth.js';
 
 const SESSION_COOKIE = 'lr_session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;

@@ -1,9 +1,9 @@
 export const config = { runtime: 'edge' };
 
-import { parseCookies } from '../_lib/cookies';
-import { decryptSession } from '../_lib/session';
-import { requiredEnv } from '../_lib/env';
-import type { StoredSession } from '../_lib/adobeAuth';
+import { parseCookies } from '../_lib/cookies.js';
+import { decryptSession } from '../_lib/session.js';
+import { requiredEnv } from '../_lib/env.js';
+import type { StoredSession } from '../_lib/adobeAuth.js';
 
 const SESSION_COOKIE = 'lr_session';
 

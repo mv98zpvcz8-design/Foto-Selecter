@@ -1,9 +1,9 @@
 export const config = { runtime: 'edge' };
 
-import { exchangeCodeForTokens, type StoredSession } from '../_lib/adobeAuth';
-import { requiredEnv } from '../_lib/env';
-import { parseCookies, serializeCookie } from '../_lib/cookies';
-import { encryptSession } from '../_lib/session';
+import { exchangeCodeForTokens, type StoredSession } from '../_lib/adobeAuth.js';
+import { requiredEnv } from '../_lib/env.js';
+import { parseCookies, serializeCookie } from '../_lib/cookies.js';
+import { encryptSession } from '../_lib/session.js';
 
 const STATE_COOKIE = 'lr_oauth_state';
 const SESSION_COOKIE = 'lr_session';

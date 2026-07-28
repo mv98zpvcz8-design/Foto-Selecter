@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' };
 
-import { serializeCookie } from '../_lib/cookies';
+import { serializeCookie } from '../_lib/cookies.js';
 
 const SESSION_COOKIE = 'lr_session';
 

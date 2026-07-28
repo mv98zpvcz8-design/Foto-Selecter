@@ -1,8 +1,8 @@
 export const config = { runtime: 'edge' };
 
-import { buildAuthorizeUrl } from '../_lib/adobeAuth';
-import { requiredEnv } from '../_lib/env';
-import { serializeCookie } from '../_lib/cookies';
+import { buildAuthorizeUrl } from '../_lib/adobeAuth.js';
+import { requiredEnv } from '../_lib/env.js';
+import { serializeCookie } from '../_lib/cookies.js';
 
 const STATE_COOKIE = 'lr_oauth_state';
 

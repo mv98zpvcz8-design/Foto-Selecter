@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { SUPPORTED_EXTENSIONS } from '../lib/fileTypes';
@@ -16,8 +16,26 @@ export function UploadScreen() {
   const [dragging, setDragging] = useState(false);
   const [cacheCleared, setCacheCleared] = useState(false);
   const [showLightroomImport, setShowLightroomImport] = useState(false);
+  const [lightroomError, setLightroomError] = useState<string | null>(null);
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // The OAuth round-trip (Adobe -> our callback -> back here) previously
+  // failed completely silently — the callback appended ?lightroom_error=...
+  // but nothing ever read it, so a broken connection just looked like
+  // "nothing happened". Surface it and reopen the panel so retrying is
+  // one click instead of a mystery.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('lightroom_error');
+    if (error) {
+      setLightroomError(error);
+      setShowLightroomImport(true);
+      params.delete('lightroom_error');
+      const query = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (query ? `?${query}` : ''));
+    }
+  }, []);
 
   function handleClearAnalysisCache() {
     clearAnalysisCache().then(() => setCacheCleared(true));
@@ -57,6 +75,12 @@ export function UploadScreen() {
 
   return (
     <div>
+      {lightroomError && (
+        <div className="warning-banner">
+          {t('lightroom.oauthError', { code: lightroomError })}
+        </div>
+      )}
+
       <div
         className={`dropzone${dragging ? ' dragging' : ''}`}
         onDragEnter={handleDragEnter}

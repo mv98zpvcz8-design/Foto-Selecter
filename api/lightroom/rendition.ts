@@ -1,8 +1,8 @@
 export const config = { runtime: 'edge' };
 
-import { getActiveSession } from '../_lib/lightroomSession';
-import { getCatalogId, lightroomBinary } from '../_lib/lightroomApi';
-import { requiredEnv } from '../_lib/env';
+import { getActiveSession } from '../_lib/lightroomSession.js';
+import { getCatalogId, lightroomBinary } from '../_lib/lightroomApi.js';
+import { requiredEnv } from '../_lib/env.js';
 
 // thumbnail2x: fast small preview for the album-browsing grid.
 // 2048: what actually gets analyzed — plenty for our 480px internal

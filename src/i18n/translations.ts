@@ -42,6 +42,7 @@ const de: Record<string, string> = {
   'lightroom.importingProgress': 'Lade {{done}}/{{total}}…',
   'lightroom.importPartialError': '{{count}} Foto(s) konnten nicht geladen werden.',
   'lightroom.error': 'Lightroom-Anfrage fehlgeschlagen. Bitte erneut versuchen.',
+  'lightroom.oauthError': 'Verbindung zu Adobe Lightroom fehlgeschlagen ({{code}}). Bitte erneut versuchen.',
   'upload.clearAnalysisCache': 'Analyse-Cache leeren',
   'upload.clearAnalysisCacheHint':
     'Löscht lokal gespeicherte Analyseergebnisse, die eine unterbrochene Analyse großer Shootings beschleunigen. Fotos selbst sind davon nicht betroffen.',
@@ -470,6 +471,7 @@ const en: Record<string, string> = {
   'lightroom.importingProgress': 'Loading {{done}}/{{total}}…',
   'lightroom.importPartialError': '{{count}} photo(s) failed to load.',
   'lightroom.error': 'Lightroom request failed. Please try again.',
+  'lightroom.oauthError': 'Connecting to Adobe Lightroom failed ({{code}}). Please try again.',
   'upload.clearAnalysisCache': 'Clear analysis cache',
   'upload.clearAnalysisCacheHint':
     "Deletes locally stored analysis results that speed up resuming an interrupted large shoot. Your photos themselves aren't affected.",

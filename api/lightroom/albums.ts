@@ -1,8 +1,8 @@
 export const config = { runtime: 'edge' };
 
-import { getActiveSession } from '../_lib/lightroomSession';
-import { getCatalogId, lightroomJson } from '../_lib/lightroomApi';
-import { requiredEnv } from '../_lib/env';
+import { getActiveSession } from '../_lib/lightroomSession.js';
+import { getCatalogId, lightroomJson } from '../_lib/lightroomApi.js';
+import { requiredEnv } from '../_lib/env.js';
 
 interface LrAlbumResource {
   id: string;
