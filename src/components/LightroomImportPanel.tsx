@@ -154,9 +154,16 @@ export function LightroomImportPanel({ onClose }: { onClose: () => void }) {
     <div className="lightroom-panel">
       <div className="modal-header-row">
         <h3>{t('lightroom.heading')}</h3>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
-          {t('breakdown.close')}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {status === 'connected' && (
+            <a className="btn btn-ghost btn-sm" href="/api/auth/logout">
+              {t('lightroom.disconnect')}
+            </a>
+          )}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
+            {t('breakdown.close')}
+          </button>
+        </div>
       </div>
 
       {status === 'checking' && <div className="empty-state">{t('lightroom.checking')}</div>}

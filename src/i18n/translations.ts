@@ -42,6 +42,7 @@ const de: Record<string, string> = {
   'lightroom.importingProgress': 'Lade {{done}}/{{total}}…',
   'lightroom.importPartialError': '{{count}} Foto(s) konnten nicht geladen werden.',
   'lightroom.error': 'Lightroom-Anfrage fehlgeschlagen. Bitte erneut versuchen.',
+  'lightroom.disconnect': 'Trennen',
   'lightroom.oauthError': 'Verbindung zu Adobe Lightroom fehlgeschlagen ({{code}}). Bitte erneut versuchen.',
   'upload.clearAnalysisCache': 'Analyse-Cache leeren',
   'upload.clearAnalysisCacheHint':
@@ -471,6 +472,7 @@ const en: Record<string, string> = {
   'lightroom.importingProgress': 'Loading {{done}}/{{total}}…',
   'lightroom.importPartialError': '{{count}} photo(s) failed to load.',
   'lightroom.error': 'Lightroom request failed. Please try again.',
+  'lightroom.disconnect': 'Disconnect',
   'lightroom.oauthError': 'Connecting to Adobe Lightroom failed ({{code}}). Please try again.',
   'upload.clearAnalysisCache': 'Clear analysis cache',
   'upload.clearAnalysisCacheHint':
