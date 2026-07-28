@@ -1640,3 +1640,68 @@ input, select {
     max-height: 90vh;
   }
 }
+
+.lightroom-panel-wrapper {
+  max-width: 760px;
+}
+.lightroom-connect {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+.lightroom-album-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.lightroom-album-btn {
+  justify-content: flex-start;
+  text-align: left;
+}
+.lightroom-album-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.lightroom-select-all-row {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--label-secondary);
+}
+.lightroom-asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+.lightroom-asset-tile {
+  position: relative;
+  display: block;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.lightroom-asset-tile.selected {
+  border-color: var(--accent);
+}
+.lightroom-asset-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.lightroom-asset-checkbox {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 1;
+}

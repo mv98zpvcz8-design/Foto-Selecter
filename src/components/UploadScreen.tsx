@@ -3,6 +3,7 @@ import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { SUPPORTED_EXTENSIONS } from '../lib/fileTypes';
 import { clearAnalysisCache } from '../lib/analysisCache';
+import { LightroomImportPanel } from './LightroomImportPanel';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -14,6 +15,7 @@ export function UploadScreen() {
   const t = useT();
   const [dragging, setDragging] = useState(false);
   const [cacheCleared, setCacheCleared] = useState(false);
+  const [showLightroomImport, setShowLightroomImport] = useState(false);
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +71,16 @@ export function UploadScreen() {
         <h2>{t('upload.title')}</h2>
         <p>{t('upload.subtitle', { formats: SUPPORTED_EXTENSIONS.map((e) => `.${e.toUpperCase()}`).join(', ') })}</p>
         <p className="dropzone-hint">{t('upload.iPadHint')}</p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowLightroomImport(true);
+          }}
+        >
+          {t('lightroom.openButton')}
+        </button>
         <input
           ref={inputRef}
           type="file"
@@ -78,6 +90,19 @@ export function UploadScreen() {
           onChange={(e) => addFiles(e.target.files)}
         />
       </div>
+
+      {showLightroomImport && (
+        <div className="modal-backdrop" onClick={() => setShowLightroomImport(false)}>
+          <div
+            className="series-compare-panel lightroom-panel-wrapper"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <LightroomImportPanel onClose={() => setShowLightroomImport(false)} />
+          </div>
+        </div>
+      )}
 
       {state.rejectedFileNames.length > 0 && (
         <div className="warning-banner">

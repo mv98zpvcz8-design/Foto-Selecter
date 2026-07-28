@@ -83,14 +83,19 @@ Auf ausdrücklichen Wunsch entsteht gerade eine direkte Adobe-Lightroom-Anbindun
 
 **Architektur:** ein minimaler Server-Baustein (Vercel Edge Functions unter `api/`) übernimmt ausschließlich drei Dinge: OAuth-Code-Austausch, Refresh-Token-Handling und das Weiterreichen der Lightroom-API-Calls — keine Datenbank, keine gespeicherten Fotos, kein Business-Logik dort. Tokens liegen serverseitig AES-256-GCM-verschlüsselt in einem `HttpOnly`/`Secure`-Cookie (Schlüssel aus `SESSION_SECRET`, nie im Client sichtbar).
 
+**Nutzung:** Im Upload-Screen "Aus Lightroom importieren" öffnet ein Panel: einmalig bei Adobe verbinden → Album auswählen → gewünschte Fotos per Häkchen markieren (Thumbnails, seitenweise nachladbar für große Alben) → "In Analyse übernehmen" lädt nur die tatsächlich ausgewählten Fotos als 2048px-Rendition, verpackt sie als normale JPEG-Dateien und speist sie in dieselbe Analyse-Pipeline wie hochgeladene Dateien ein — kein separates Auswahl-/Vergleichs-/Export-System, alles Bestehende (Profile, Score, Serien-Vergleich, CSV-Export) funktioniert danach unverändert.
+
 **Bisheriger Stand:**
 - ✅ OAuth-Login/Callback/Status/Logout (`api/auth/*`) — verifiziert per Unit-Tests für die Verschlüsselungslogik.
-- ⏳ Album-Liste abrufen, Fotos daraus in die bestehende Analyse-Pipeline einspeisen — in Arbeit.
+- ✅ Alben auflisten, Fotos eines Albums seitenweise laden, Renditions (Thumbnail + 2048px) abrufen und in die bestehende Pipeline einspeisen (`api/lightroom/*`, `LightroomImportPanel.tsx`) — strukturell verifiziert (Type-Check, Build, Fehlerfälle ohne echte Adobe-Session getestet).
+- ⏳ **Noch nicht live gegen einen echten Adobe-Account getestet** — die API-Pfade stammen aus Adobes eigenem, offiziellem Beispielcode, aber der erste echte Verbindungsversuch (OAuth-Redirect, Scopes, Rendition-Zugriff) steht noch aus.
+- Bewusst nicht eingebaut: Rückschreiben von Picks/Kategorien nach Lightroom, Download der Original-/RAW-Dateien (nur Vorschau-Renditions werden geladen).
 
 **Einrichtung (für eigenen Adobe-Zugang):**
 1. Eigene Adobe-ID + Projekt in der [Adobe Developer Console](https://console.adobe.io) anlegen, API "Lightroom Services" hinzufügen, Credential-Typ "Web App".
 2. `.env.example` nach `.env.local` kopieren (bereits in `.gitignore`) und `ADOBE_CLIENT_ID`, `ADOBE_CLIENT_SECRET`, `ADOBE_REDIRECT_URI`, `SESSION_SECRET` eintragen.
 3. Redirect-URI in der Adobe Console muss exakt mit `ADOBE_REDIRECT_URI` übereinstimmen — Adobe verlangt HTTPS auch für localhost.
+4. Lokal testen mit `npx vercel dev` (nicht `npm run dev`, da sonst die `api/`-Routen fehlen); Deployment mit `npx vercel`.
 
 ## Architektur-Grenze: was ohne Backend nicht geht
 
