@@ -30,6 +30,35 @@ describe('scorePhotos', () => {
     }
   });
 
+  it('does not manufacture a "blurry" label out of noise in a uniformly sharp, narrow-spread batch', () => {
+    // All four raw values are close together (within ~11% of each other) —
+    // realistic for a set of genuinely sharp photos where the only
+    // differences come from re-encode jitter, not real focus gaps.
+    const photos = [
+      makePhoto({ sharpnessRaw: 950, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+      makePhoto({ sharpnessRaw: 980, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+      makePhoto({ sharpnessRaw: 1020, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+      makePhoto({ sharpnessRaw: 1050, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+    ];
+    scorePhotos(photos, PURPOSE_WEIGHTS.sonstiges);
+
+    for (const p of photos) {
+      expect(p.sharpnessScore).toBeGreaterThanOrEqual(60); // clears the "sharp" filter threshold
+    }
+  });
+
+  it('still spreads scores across the full range for a batch with a real, wide sharpness gap', () => {
+    const photos = [
+      makePhoto({ sharpnessRaw: 20, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+      makePhoto({ sharpnessRaw: 500, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+      makePhoto({ sharpnessRaw: 1000, shadowClipping: 0, highlightClipping: 0, meanLuminance: 128 }),
+    ];
+    scorePhotos(photos, PURPOSE_WEIGHTS.sonstiges);
+
+    expect(photos[0].sharpnessScore).toBeLessThan(40);
+    expect(photos[2].sharpnessScore).toBeGreaterThan(80);
+  });
+
   it('gives a neutral face score of 100 when no faces were detected', () => {
     const photos = [makePhoto({ sharpnessRaw: 50, facesDetected: 0 })];
     scorePhotos(photos, PURPOSE_WEIGHTS.kunde);

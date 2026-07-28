@@ -24,6 +24,45 @@ function effectiveSharpnessRaw(photo: PhotoResult): number {
   return Math.max(photo.sharpnessRaw ?? 0, photo.subjectSharpnessRaw ?? 0);
 }
 
+// Below this, the batch's own raw-sharpness spread (relative to its own
+// top value) is treated as too narrow to represent real focus
+// differences rather than re-encode/compression jitter — see the long
+// comment in normalizeSharpnessScores for why that matters. A threshold
+// of 1.0 means: full trust in the percentile stretch only once the
+// batch's softest photo has roughly half (or less) the raw sharpness of
+// its sharpest photo — anything narrower than that is treated as noise,
+// not a real quality gap.
+const MEANINGFUL_SPREAD_THRESHOLD = 1;
+// What a photo scores when its batch's spread isn't trusted (see below):
+// solidly in the "sharp" bucket (>= the sharp filter's 60 cutoff) without
+// claiming the "verySharp" tier it hasn't demonstrated evidence for.
+const NEUTRAL_SHARPNESS_SCORE = 75;
+
+/**
+ * Maps raw Laplacian variance to a 0-100 score, relative to this batch's
+ * own 5th/95th percentile — Laplacian variance depends heavily on scene
+ * content (a detailed/textured shot reads "sharper" than a soft-focus
+ * portrait at the same true focus accuracy), so there's no universal
+ * absolute scale to compare against; only "sharper/softer than its own
+ * batch" is meaningful.
+ *
+ * That relative-only approach has a real failure mode though: in a small
+ * or uniformly-sharp batch, the actual raw-variance differences between
+ * photos can be tiny — essentially JPEG re-encode noise, not real focus
+ * gaps — yet a pure percentile stretch still spreads them across the
+ * full 0-100 range, artificially labelling the batch's least-sharp member
+ * "blurry" even though every photo in it is genuinely sharp. (Reported
+ * directly: a Lightroom-imported batch of clearly sharp photos had one
+ * tagged blurry purely because it was the batch's own relative minimum.)
+ *
+ * Fix: only trust the percentile stretch once the batch's spread is wide
+ * relative to its own scale (MEANINGFUL_SPREAD_THRESHOLD). Below that,
+ * blend the stretched value toward a neutral "sharp enough" score instead
+ * of manufacturing a 0-100 spread out of what's likely just noise. This
+ * doesn't require guessing a universal absolute Laplacian threshold —
+ * it only asks "is this batch's own spread big enough to trust as a real
+ * signal", which stays valid across different scene content.
+ */
 function normalizeSharpnessScores(photos: PhotoResult[]): void {
   const values = photos
     .filter((p) => p.status === 'done' && p.sharpnessRaw != null)
@@ -36,10 +75,14 @@ function normalizeSharpnessScores(photos: PhotoResult[]): void {
   const p95 = percentile(values, 0.95);
   const range = Math.max(p95 - p05, 1e-6);
 
+  const relativeSpread = range / Math.max(p95, 1e-6);
+  const spreadConfidence = clamp(relativeSpread / MEANINGFUL_SPREAD_THRESHOLD, 0, 1);
+
   for (const photo of photos) {
     if (photo.status !== 'done' || photo.sharpnessRaw == null) continue;
-    const normalized = ((effectiveSharpnessRaw(photo) - p05) / range) * 100;
-    photo.sharpnessScore = clamp(Math.round(normalized), 0, 100);
+    const stretched = ((effectiveSharpnessRaw(photo) - p05) / range) * 100;
+    const blended = stretched * spreadConfidence + NEUTRAL_SHARPNESS_SCORE * (1 - spreadConfidence);
+    photo.sharpnessScore = clamp(Math.round(blended), 0, 100);
   }
 }
 
