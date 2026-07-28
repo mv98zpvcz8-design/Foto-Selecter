@@ -3,13 +3,11 @@
 export const ADOBE_AUTHORIZE_URL = 'https://ims-na1.adobelogin.com/ims/authorize/v2';
 export const ADOBE_TOKEN_URL = 'https://ims-na1.adobelogin.com/ims/token/v3';
 
-// lr_partner_apis is the Lightroom-specific scope; offline_access requests
-// a refresh token. Adobe has historically rejected offline_access with
-// invalid_scope for some integrations until they enable it on their side —
-// if that happens here, drop it from this list and users will just need
-// to re-connect every ~24h (the access token lifetime) instead of staying
-// connected indefinitely.
-export const ADOBE_SCOPE = 'openid,AdobeID,lr_partner_apis,offline_access';
+// Must match exactly what's configured for the "Lightroom Services" API on
+// the Adobe Developer Console credential (visible on its Credentials page)
+// — lr_partner_rendition_apis is required for the rendition/preview-image
+// endpoints specifically, separate from the general lr_partner_apis scope.
+export const ADOBE_SCOPE = 'openid,AdobeID,lr_partner_apis,lr_partner_rendition_apis,offline_access';
 
 export interface AdobeTokenResponse {
   access_token: string;
