@@ -1705,3 +1705,43 @@ input, select {
   left: 6px;
   z-index: 1;
 }
+
+.poster-panel-wrapper {
+  max-width: 1100px;
+}
+.poster-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.poster-tile {
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  flex: 0 0 auto;
+}
+.poster-tile.selected {
+  border-color: var(--accent);
+}
+.poster-tile-preview {
+  overflow: hidden;
+  background: #00000020;
+  border-radius: 8px;
+  pointer-events: none;
+}
+.poster-tile-name {
+  padding: 8px 4px;
+  font-size: 13px;
+  color: var(--label-secondary);
+}
+.poster-export-offscreen {
+  position: fixed;
+  top: 0;
+  left: -99999px;
+  pointer-events: none;
+}

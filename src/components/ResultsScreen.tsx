@@ -6,6 +6,7 @@ import { CarouselSection } from './CarouselSection';
 import { FilterPanel } from './FilterPanel';
 import { AnalyticsScreen } from './AnalyticsScreen';
 import { VirtualizedGrid } from './VirtualizedGrid';
+import { PosterGeneratorScreen } from './PosterGeneratorScreen';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 import { TIER_EDIT_THRESHOLD, TIER_POTENTIAL_THRESHOLD, tierForScore } from '../lib/scoring';
@@ -43,6 +44,7 @@ export function ResultsScreen() {
   const { photos, showAll } = state;
   const isTriage = state.selectionMode === 'triage';
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showPosterGenerator, setShowPosterGenerator] = useState(false);
 
   const profileDisplayName =
     state.profileRef.kind === 'builtin'
@@ -142,6 +144,9 @@ export function ResultsScreen() {
           >
             {t('analytics.toggle')}
           </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowPosterGenerator(true)}>
+            {t('poster.toggle')}
+          </button>
           <button
             type="button"
             className="btn btn-ghost btn-sm"
@@ -212,6 +217,19 @@ export function ResultsScreen() {
             </>
           )}
         </>
+      )}
+
+      {showPosterGenerator && (
+        <div className="modal-backdrop" onClick={() => setShowPosterGenerator(false)}>
+          <div
+            className="series-compare-panel poster-panel-wrapper"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <PosterGeneratorScreen onClose={() => setShowPosterGenerator(false)} />
+          </div>
+        </div>
       )}
     </div>
   );
