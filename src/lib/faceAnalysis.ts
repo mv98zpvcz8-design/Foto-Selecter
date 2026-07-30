@@ -19,6 +19,8 @@ export interface FaceAnalysis {
   subjectSharpnessRaw?: number;
   /** Mean face-api expression scores across all detected faces (each key already 0-1, averaged). */
   emotionScores?: Partial<Record<EmotionKey, number>>;
+  /** Average face-box center across all detected faces, normalized to 0-1 of the image dimensions. */
+  subjectCenter?: { x: number; y: number };
 }
 
 let modelsLoaded: Promise<typeof FaceApiNs> | null = null;
@@ -66,6 +68,8 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
   let closed = 0;
   let frontal = 0;
   let subjectSharpnessRaw: number | undefined;
+  let centerXSum = 0;
+  let centerYSum = 0;
   const emotionSums: Partial<Record<EmotionKey, number>> = {};
 
   for (const detection of detections) {
@@ -83,6 +87,8 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
     const height = Math.min(img.naturalHeight - y, box.height + padY * 2);
     const regionSharpness = sharpnessOfRegion(img, { x, y, width, height });
     subjectSharpnessRaw = Math.max(subjectSharpnessRaw ?? 0, regionSharpness);
+    centerXSum += (box.x + box.width / 2) / img.naturalWidth;
+    centerYSum += (box.y + box.height / 2) / img.naturalHeight;
 
     for (const [key, value] of Object.entries(detection.expressions)) {
       emotionSums[key as EmotionKey] = (emotionSums[key as EmotionKey] ?? 0) + (value as number);
@@ -96,12 +102,16 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
         ) as Partial<Record<EmotionKey, number>>)
       : undefined;
 
+  const subjectCenter =
+    detections.length > 0 ? { x: centerXSum / detections.length, y: centerYSum / detections.length } : undefined;
+
   return {
     facesDetected: detections.length,
     facesWithClosedEyes: closed,
     facesLookingAtCamera: frontal,
     subjectSharpnessRaw,
     emotionScores,
+    subjectCenter,
   };
 }
 

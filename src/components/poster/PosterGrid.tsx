@@ -1,5 +1,6 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
+import { smartObjectPosition } from './smartObjectPosition';
 
 /** A clean photo grid (up to 6 images) with a slim title strip — the "contact sheet as poster" look. Structurally distinct from every other template: no single hero image dominates. */
 export function PosterGrid({ data, widthPx, heightPx }: PosterTemplateProps) {
@@ -32,7 +33,11 @@ export function PosterGrid({ data, widthPx, heightPx }: PosterTemplateProps) {
       >
         {photos.map((photo) => (
           <div key={photo.id} style={{ overflow: 'hidden', background: '#00000015' }}>
-            <img src={photo.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <img
+              src={photo.previewUrl}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: smartObjectPosition(photo), display: 'block' }}
+            />
           </div>
         ))}
       </div>

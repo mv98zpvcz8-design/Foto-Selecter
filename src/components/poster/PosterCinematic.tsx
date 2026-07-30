@@ -1,5 +1,6 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
+import { smartObjectPosition } from './smartObjectPosition';
 
 /** One strong photo, edge-to-edge, with only a subtle gradient + small overlay caption at the bottom — the opposite extreme from the minimalist template's whitespace-and-frame approach. */
 export function PosterCinematic({ data, widthPx, heightPx }: PosterTemplateProps) {
@@ -19,7 +20,14 @@ export function PosterCinematic({ data, widthPx, heightPx }: PosterTemplateProps
       <img
         src={data.heroPhoto.previewUrl}
         alt=""
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: smartObjectPosition(data.heroPhoto),
+        }}
       />
       <div
         style={{

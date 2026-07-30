@@ -31,6 +31,7 @@ export interface CachedPhotoAnalysis {
   facesWithClosedEyes?: number;
   facesLookingAtCamera?: number;
   emotionScores?: Partial<Record<EmotionKey, number>>;
+  subjectCenter?: { x: number; y: number };
 }
 
 /** Same file-identity convention used for upload dedup — good enough to recognize "this is the same photo" across a reload. */
@@ -84,6 +85,7 @@ export async function saveAnalysis(photo: PhotoResult): Promise<void> {
       facesWithClosedEyes: photo.facesWithClosedEyes,
       facesLookingAtCamera: photo.facesLookingAtCamera,
       emotionScores: photo.emotionScores,
+      subjectCenter: photo.subjectCenter,
     };
 
     const db = await openDb();
@@ -189,4 +191,5 @@ export function applyCachedAnalysis(photo: PhotoResult, cached: CachedPhotoAnaly
   photo.facesWithClosedEyes = cached.facesWithClosedEyes;
   photo.facesLookingAtCamera = cached.facesLookingAtCamera;
   photo.emotionScores = cached.emotionScores;
+  photo.subjectCenter = cached.subjectCenter;
 }

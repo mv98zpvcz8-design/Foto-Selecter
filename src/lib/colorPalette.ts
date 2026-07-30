@@ -34,6 +34,8 @@ export interface PosterPalette {
   photoAverage: string;
   /** A deepened/saturated variant of photoAverage, for accents that need to read as "from this shoot" without being washed out. */
   accent: string;
+  /** Whichever of black/white reads more clearly against `accent` specifically — accent's luminance can go either way regardless of the overall background, so it needs its own contrast pick. */
+  accentText: string;
   /** Near-neutral background derived from the photo tone (very light or very dark tint) — safe to place text on. */
   background: string;
   text: string;
@@ -44,9 +46,11 @@ export interface PosterPalette {
 export function buildPalette(avgColors: RgbColor[], preferDark: boolean): PosterPalette {
   if (avgColors.length === 0) {
     const bg: RgbColor = preferDark ? { r: 20, g: 20, b: 22 } : { r: 247, g: 245, b: 242 };
+    const neutralAccent: RgbColor = { r: 136, g: 136, b: 136 };
     return {
       photoAverage: '#888888',
-      accent: '#888888',
+      accent: toHex(neutralAccent),
+      accentText: readableTextColor(neutralAccent),
       background: toHex(bg),
       text: readableTextColor(bg),
       textMuted: preferDark ? '#a8a8a8' : '#555555',
@@ -67,6 +71,7 @@ export function buildPalette(avgColors: RgbColor[], preferDark: boolean): Poster
   return {
     photoAverage: toHex(mean),
     accent: toHex(accent),
+    accentText: readableTextColor(accent),
     background: bgHex,
     text: readableTextColor(background),
     textMuted: readableTextColor(background) === '#141414' ? '#5a5a5a' : '#b8b8b8',

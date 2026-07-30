@@ -1,5 +1,6 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
+import { smartObjectPosition } from './smartObjectPosition';
 import { useT } from '../../i18n/useT';
 
 /** Magazine-style: photo occupying the top two-thirds, a text block below with a small uppercase kicker, a serif headline, and a byline-style meta line — a fundamentally different reading order (image first, then a distinct text zone) than the overlay-based templates. */
@@ -20,7 +21,11 @@ export function PosterEditorial({ data, widthPx, heightPx }: PosterTemplateProps
       }}
     >
       <div style={{ height: heightPx * 0.62, overflow: 'hidden' }}>
-        <img src={data.heroPhoto.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <img
+          src={data.heroPhoto.previewUrl}
+          alt=""
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: smartObjectPosition(data.heroPhoto), display: 'block' }}
+        />
       </div>
       <div style={{ flex: 1, padding: `${44 * s}px ${52 * s}px`, display: 'flex', flexDirection: 'column' }}>
         <div
