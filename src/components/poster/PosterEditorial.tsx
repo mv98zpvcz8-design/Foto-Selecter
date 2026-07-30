@@ -1,6 +1,7 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
+import { grainOverlayStyle } from './posterTexture';
 import { useT } from '../../i18n/useT';
 
 /** Magazine-style: photo occupying the top two-thirds, a text block below with a small uppercase kicker, a serif headline, and a byline-style meta line — a fundamentally different reading order (image first, then a distinct text zone) than the overlay-based templates. */
@@ -20,12 +21,13 @@ export function PosterEditorial({ data, widthPx, heightPx }: PosterTemplateProps
         fontFamily: 'system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif',
       }}
     >
-      <div style={{ height: heightPx * 0.62, overflow: 'hidden' }}>
+      <div style={{ position: 'relative', height: heightPx * 0.62, overflow: 'hidden' }}>
         <img
           src={data.heroPhoto.previewUrl}
           alt=""
           style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: smartObjectPosition(data.heroPhoto), display: 'block' }}
         />
+        <div style={grainOverlayStyle(0.06)} />
       </div>
       <div style={{ flex: 1, padding: `${44 * s}px ${52 * s}px`, display: 'flex', flexDirection: 'column' }}>
         <div
@@ -39,9 +41,9 @@ export function PosterEditorial({ data, widthPx, heightPx }: PosterTemplateProps
         >
           {t(`poster.mood.${data.mood}`)} · {t(`poster.people.${data.peopleFormat}`)}
         </div>
+        <div style={{ width: 44 * s, height: 2 * s, background: data.palette.accent, margin: `${14 * s}px 0` }} />
         <div
           style={{
-            marginTop: 8 * s,
             fontFamily: 'Georgia, "Times New Roman", serif',
             fontSize: 56 * s,
             lineHeight: 1.05,

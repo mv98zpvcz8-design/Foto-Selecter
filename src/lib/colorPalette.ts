@@ -13,6 +13,21 @@ export function mixRgb(a: RgbColor, b: RgbColor, t: number): RgbColor {
   return { r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t };
 }
 
+export function hexToRgb(hex: string): RgbColor {
+  const clean = hex.replace('#', '');
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16),
+  };
+}
+
+/** Pushes a color's saturation up (factor > 1) or down by scaling its distance from its own perceived-luminance gray point — used when a photo-derived average color is too muddy to read as a deliberate design choice (e.g. averaging several differently-lit photos tends toward gray). */
+export function adjustSaturation(c: RgbColor, factor: number): RgbColor {
+  const gray = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  return { r: gray + (c.r - gray) * factor, g: gray + (c.g - gray) * factor, b: gray + (c.b - gray) * factor };
+}
+
 function relativeLuminance({ r, g, b }: RgbColor): number {
   // Standard WCAG relative luminance (sRGB, gamma-approximated) — good
   // enough here for a binary "is this background light or dark" choice,
