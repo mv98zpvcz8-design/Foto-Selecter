@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import { toBlob, toPng } from 'html-to-image';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 import { derivePosterData, type PosterData } from '../lib/posterData';
 import { availableTemplatesFor, type PosterTemplateDef } from './poster/posterTemplates';
+import { openPosterInExpress } from '../lib/adobeExpressEmbed';
 
 // Poster aspect ratio follows the ISO A-series (1:√2, e.g. A3 portrait).
 const ASPECT_RATIO = Math.SQRT2;
 const PREVIEW_WIDTH = 360;
 // ~300dpi-equivalent for A3 portrait (297x420mm) — the actual print target.
 const EXPORT_WIDTH = 3508;
+
+// A PUBLIC, browser-embeddable key by design (the Express Embed SDK runs
+// entirely client-side, there's no matching secret) — see .env.example.
+const ADOBE_EXPRESS_CLIENT_ID = import.meta.env.VITE_ADOBE_EXPRESS_CLIENT_ID as string | undefined;
 
 export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
   const { state } = useAppState();
@@ -32,6 +37,8 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openingInExpress, setOpeningInExpress] = useState(false);
+  const [expressError, setExpressError] = useState<string | null>(null);
   const exportContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,6 +66,30 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
       setError(t('poster.exportError'));
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleOpenInExpress(templateDef: PosterTemplateDef) {
+    if (!posterData || !exportContainerRef.current) return;
+    if (!ADOBE_EXPRESS_CLIENT_ID) {
+      setExpressError(t('poster.adobe.missingClientId'));
+      return;
+    }
+    setOpeningInExpress(true);
+    setExpressError(null);
+    try {
+      const blob = await toBlob(exportContainerRef.current, {
+        width: EXPORT_WIDTH,
+        height: EXPORT_WIDTH * ASPECT_RATIO,
+        pixelRatio: 1,
+      });
+      if (!blob) throw new Error('Rendering the poster image failed');
+      await openPosterInExpress(ADOBE_EXPRESS_CLIENT_ID, blob);
+    } catch (err) {
+      console.error(`Opening "${templateDef.id}" in Adobe Express failed:`, err);
+      setExpressError(t('poster.adobe.error', { message: err instanceof Error ? err.message : String(err) }));
+    } finally {
+      setOpeningInExpress(false);
     }
   }
 
@@ -110,6 +141,20 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
           </div>
 
           {error && <p className="dashboard-error-note">{error}</p>}
+
+          <div className="poster-adobe-section">
+            <h4>{t('poster.adobe.heading')}</h4>
+            <p className="analytics-scope-note">{t('poster.adobe.disclosure')}</p>
+            <button
+              type="button"
+              className="btn"
+              disabled={!selectedTemplate || openingInExpress}
+              onClick={() => selectedTemplate && handleOpenInExpress(selectedTemplate)}
+            >
+              {openingInExpress ? t('poster.adobe.preparing') : t('poster.adobe.open')}
+            </button>
+            {expressError && <p className="dashboard-error-note">{expressError}</p>}
+          </div>
 
           {/* Off-screen full-resolution render used only for export — the visible tiles above are cheap small previews so switching between templates stays instant. */}
           {selectedTemplate && (

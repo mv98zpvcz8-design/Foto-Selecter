@@ -298,6 +298,15 @@ const de: Record<string, string> = {
   'poster.people.group': 'Gruppe',
   'poster.people.none': 'Ohne Personen',
 
+  'poster.adobe.heading': 'In Adobe Express weiterbearbeiten',
+  'poster.adobe.disclosure':
+    'Öffnet dieses gerenderte Poster als echtes, bearbeitbares Dokument in Adobe Express — anders als der Rest der App wird das Bild dafür an Adobe übertragen (läuft direkt im Browser über Adobes Express-SDK, kein eigener Server dazwischen). Nur nutzen, wenn das für dich in Ordnung ist.',
+  'poster.adobe.open': 'In Adobe Express öffnen',
+  'poster.adobe.loadingSdk': 'Adobe Express wird geladen…',
+  'poster.adobe.preparing': 'Poster wird vorbereitet…',
+  'poster.adobe.error': 'Adobe Express konnte nicht geöffnet werden: {{message}}',
+  'poster.adobe.missingClientId': 'Adobe Express ist nicht konfiguriert (VITE_ADOBE_EXPRESS_CLIENT_ID fehlt).',
+
   'analytics.toggle': 'Shot Analytics',
   'analytics.scopeNote':
     'Alle Zahlen stammen aus der lokalen Bildanalyse dieses Durchgangs — keine externe Datenquelle, keine erfundenen Zusammenhänge.',
@@ -753,6 +762,15 @@ const en: Record<string, string> = {
   'poster.people.couple': 'Couple',
   'poster.people.group': 'Group',
   'poster.people.none': 'No people',
+
+  'poster.adobe.heading': 'Continue editing in Adobe Express',
+  'poster.adobe.disclosure':
+    'Opens this rendered poster as a real, editable document in Adobe Express — unlike the rest of the app, the image is sent to Adobe for this (runs directly in your browser via Adobe\'s Express SDK, no server of ours in between). Only use this if that\'s okay with you.',
+  'poster.adobe.open': 'Open in Adobe Express',
+  'poster.adobe.loadingSdk': 'Loading Adobe Express…',
+  'poster.adobe.preparing': 'Preparing poster…',
+  'poster.adobe.error': 'Could not open Adobe Express: {{message}}',
+  'poster.adobe.missingClientId': 'Adobe Express is not configured (VITE_ADOBE_EXPRESS_CLIENT_ID is missing).',
 
   'analytics.toggle': 'Shot Analytics',
   'analytics.scopeNote':

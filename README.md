@@ -96,6 +96,15 @@ Ein neuer "Dashboard"-Button im Header öffnet eine geräteweite Übersicht übe
 - **Schriften**: bewusst nur System-Schriften (Georgia/serif, system-ui/sans-serif) — kein Web-Font-Nachladen, damit Poster-Generierung genau wie der Rest der App komplett offline funktioniert.
 - **Nicht enthalten** (bewusst, siehe Akzeptanzkriterien-Diskussion): Canva-Export — würde ein neues externes Konto/API in die App selbst einbauen, dafür separat zu entscheiden, falls gewünscht.
 
+### "In Adobe Express weiterbearbeiten" (optional, clientseitig)
+
+Auf ausdrücklichen Wunsch gibt es zusätzlich einen Button, der das gerenderte Poster in Adobe Express öffnet, damit dort weiter editiert werden kann — bewusst **kein** neuer Backend-Baustein, sondern reines Client-JS über Adobes **Express Embed SDK** (`window.CCEverywhere`, siehe `src/lib/adobeExpressEmbed.ts`), lazy-geladen von Adobes CDN erst wenn der Button tatsächlich geklickt wird.
+
+- **Warum nicht die Photoshop API**: Der ursprüngliche Plan war eine echte Photoshop-API-Anbindung (serverseitiges Dokument-Layout mit Ebenen). Das scheiterte an einer harten Zugangsvoraussetzung: Adobes Firefly-Services-APIs (inkl. Photoshop API) sind seit Anfang 2025 ein eigenständiges Enterprise-Produkt, Zugang nur über ein Sales-Gespräch mit Adobe, nicht selbstständig über die Developer Console freischaltbar (anders als die Lightroom-API oben, die über einen normalen Adobe-Account per "Beta users" ging). Der dafür gebaute Backend-Code (`api/_lib/photoshop*.ts`, S2S-OAuth, Dokument-Manifest, Job-Polling) wurde nach dieser Erkenntnis wieder entfernt.
+- **Warum Express stattdessen funktioniert**: Das Embed SDK ist ein normales, selbstständig über die Developer Console erreichbares Entwickler-Produkt — Registrierung liefert eine öffentliche, browser-einbettbare Client-ID (kein Secret, läuft komplett im Browser, siehe `VITE_ADOBE_EXPRESS_CLIENT_ID` in `.env.example`).
+- **Datenschutz-Hinweis in der UI**: Anders als der Rest der App (Fotos verlassen nie das Gerät) wird für diese eine, klar als "Beta"/optional gekennzeichnete Aktion das bereits gerenderte Poster-Bild an Adobe übertragen — mit sichtbarem Hinweistext direkt über dem Button, nicht versteckt.
+- **Kein Foto-Upload, nur das fertige Poster**: Es werden keine Rohfotos übertragen, sondern nur das bereits clientseitig zu einem PNG zusammengesetzte Poster (`toBlob()` aus `html-to-image`), per `editor.createWithAsset()` direkt als Blob an Express übergeben — keine Zwischenablage auf einem eigenen Server nötig.
+
 ## Lightroom-Anbindung (optional, in Arbeit)
 
 Auf ausdrücklichen Wunsch entsteht gerade eine direkte Adobe-Lightroom-Anbindung — eine bewusste Ausnahme von der sonst 100% clientseitigen Architektur, da Adobes Lightroom-API einen Client Secret voraussetzt, der niemals im Browser liegen darf. Wichtig: das ist ein **optionaler Zusatz-Baustein**, nicht ein Umbau der bestehenden App — wer keine Lightroom-Anbindung nutzt, braucht nichts davon einzurichten, alles andere (Upload, Analyse, Dashboard, Learn My Style, Backup) bleibt unverändert 100% clientseitig.
