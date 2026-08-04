@@ -1,8 +1,15 @@
 export const config = { runtime: 'edge' };
 
 import { buildAuthorizeUrl, generatePkcePair } from '../../_lib/canvaAuth.js';
-import { requiredEnv } from '../../_lib/env.js';
+import { requiredEnv, readEnv } from '../../_lib/env.js';
 import { serializeCookie } from '../../_lib/cookies.js';
+
+/** Reports shape, never content — catches the exact copy-paste-added-a-newline bug the redirect URI had, without ever printing a secret. */
+function envHealth(name: string): { present: boolean; length: number; hasSurroundingWhitespace: boolean } {
+  const value = readEnv(name);
+  if (!value) return { present: false, length: 0, hasSurroundingWhitespace: false };
+  return { present: true, length: value.length, hasSurroundingWhitespace: value !== value.trim() };
+}
 
 const STATE_COOKIE = 'canva_oauth_state';
 const VERIFIER_COOKIE = 'canva_pkce_verifier';
@@ -21,9 +28,20 @@ export default async function handler(req: Request): Promise<Response> {
   // collapsed address bar. Remove once the OAuth redirect_uri mismatch is
   // resolved — this reveals no secret (client secret is never in here).
   if (new URL(req.url).searchParams.get('debug') === '1') {
-    return new Response(JSON.stringify({ redirectUri, clientId, authorizeUrl }, null, 2), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify(
+        {
+          redirectUri,
+          clientId,
+          authorizeUrl,
+          clientSecretHealth: envHealth('CANVA_CLIENT_SECRET'),
+          sessionSecretHealth: envHealth('SESSION_SECRET'),
+        },
+        null,
+        2,
+      ),
+      { headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   const headers = new Headers({ Location: authorizeUrl });

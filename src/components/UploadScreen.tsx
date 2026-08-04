@@ -17,6 +17,7 @@ export function UploadScreen() {
   const [cacheCleared, setCacheCleared] = useState(false);
   const [showLightroomImport, setShowLightroomImport] = useState(false);
   const [lightroomError, setLightroomError] = useState<string | null>(null);
+  const [canvaError, setCanvaError] = useState<string | null>(null);
   const dragCounter = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +33,21 @@ export function UploadScreen() {
       setLightroomError(error);
       setShowLightroomImport(true);
       params.delete('lightroom_error');
+      const query = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (query ? `?${query}` : ''));
+    }
+  }, []);
+
+  // Same silent-failure gap as Lightroom's OAuth round-trip, but for
+  // Canva: the callback appended ?canva_error=... and nothing read it —
+  // the user just landed back on the app with no indication anything
+  // went wrong.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('canva_error');
+    if (error) {
+      setCanvaError(error);
+      params.delete('canva_error');
       const query = params.toString();
       window.history.replaceState({}, '', window.location.pathname + (query ? `?${query}` : ''));
     }
@@ -78,6 +94,12 @@ export function UploadScreen() {
       {lightroomError && (
         <div className="warning-banner">
           {t('lightroom.oauthError', { code: lightroomError })}
+        </div>
+      )}
+
+      {canvaError && (
+        <div className="warning-banner">
+          {t('poster.canva.oauthError', { code: canvaError })}
         </div>
       )}
 
