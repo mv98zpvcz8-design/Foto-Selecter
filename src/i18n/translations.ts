@@ -298,14 +298,15 @@ const de: Record<string, string> = {
   'poster.people.group': 'Gruppe',
   'poster.people.none': 'Ohne Personen',
 
-  'poster.adobe.heading': 'Als Poster in Adobe Express gestalten',
-  'poster.adobe.disclosure':
-    'Öffnet dein bestbewertetes Foto direkt in Adobe Express, damit du es dort mit Adobes eigenen Poster-Vorlagen und Design-Werkzeugen zu einem fertigen Poster machen kannst — nicht unser eigenes Layout, sondern Adobe selbst als Editor. Anders als der Rest der App wird das Foto dafür an Adobe übertragen (läuft direkt im Browser über Adobes Express-SDK, kein eigener Server dazwischen). Nur nutzen, wenn das für dich in Ordnung ist.',
-  'poster.adobe.open': 'Foto in Adobe Express öffnen',
-  'poster.adobe.loadingSdk': 'Adobe Express wird geladen…',
-  'poster.adobe.preparing': 'Foto wird vorbereitet…',
-  'poster.adobe.error': 'Adobe Express konnte nicht geöffnet werden: {{message}}',
-  'poster.adobe.missingClientId': 'Adobe Express ist nicht konfiguriert (VITE_ADOBE_EXPRESS_CLIENT_ID fehlt).',
+  'poster.canva.heading': 'Als Poster in Canva gestalten',
+  'poster.canva.disclosure':
+    'Lädt dein bestbewertetes Foto zu Canva hoch und erstellt dort ein neues Design daraus, damit du es mit Canvas eigenen Poster-Vorlagen und Design-Werkzeugen fertigstellen kannst — nicht unser eigenes Layout, sondern Canva selbst als Editor. Dafür wird das Foto an einen kleinen eigenen Server-Baustein übertragen, der es an Canva weiterreicht (gleiche Art Ausnahme von "100% clientseitig" wie die Lightroom-Anbindung). Nur nutzen, wenn das für dich in Ordnung ist.',
+  'poster.canva.checking': 'Canva-Verbindung wird geprüft…',
+  'poster.canva.connect': 'Mit Canva verbinden',
+  'poster.canva.open': 'Poster-Design in Canva erstellen',
+  'poster.canva.preparing': 'Foto wird hochgeladen…',
+  'poster.canva.disconnect': 'Trennen',
+  'poster.canva.error': 'Canva-Design konnte nicht erstellt werden: {{message}}',
 
   'analytics.toggle': 'Shot Analytics',
   'analytics.scopeNote':
@@ -763,14 +764,15 @@ const en: Record<string, string> = {
   'poster.people.group': 'Group',
   'poster.people.none': 'No people',
 
-  'poster.adobe.heading': 'Continue editing in Adobe Express',
-  'poster.adobe.disclosure':
-    'Opens this rendered poster as a real, editable document in Adobe Express — unlike the rest of the app, the image is sent to Adobe for this (runs directly in your browser via Adobe\'s Express SDK, no server of ours in between). Only use this if that\'s okay with you.',
-  'poster.adobe.open': 'Open in Adobe Express',
-  'poster.adobe.loadingSdk': 'Loading Adobe Express…',
-  'poster.adobe.preparing': 'Preparing poster…',
-  'poster.adobe.error': 'Could not open Adobe Express: {{message}}',
-  'poster.adobe.missingClientId': 'Adobe Express is not configured (VITE_ADOBE_EXPRESS_CLIENT_ID is missing).',
+  'poster.canva.heading': 'Design as a poster in Canva',
+  'poster.canva.disclosure':
+    "Uploads your best-scoring photo to Canva and creates a new design from it there, so you can finish it with Canva's own poster templates and design tools — not our own layout, Canva itself as the editor. This sends the photo through a small server component of ours that relays it to Canva (the same kind of exception to \"100% clientside\" as the Lightroom integration). Only use this if that's okay with you.",
+  'poster.canva.checking': 'Checking Canva connection…',
+  'poster.canva.connect': 'Connect to Canva',
+  'poster.canva.open': 'Create poster design in Canva',
+  'poster.canva.preparing': 'Uploading photo…',
+  'poster.canva.disconnect': 'Disconnect',
+  'poster.canva.error': 'Could not create the Canva design: {{message}}',
 
   'analytics.toggle': 'Shot Analytics',
   'analytics.scopeNote':
