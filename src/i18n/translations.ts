@@ -298,12 +298,12 @@ const de: Record<string, string> = {
   'poster.people.group': 'Gruppe',
   'poster.people.none': 'Ohne Personen',
 
-  'poster.adobe.heading': 'In Adobe Express weiterbearbeiten',
+  'poster.adobe.heading': 'Als Poster in Adobe Express gestalten',
   'poster.adobe.disclosure':
-    'Öffnet dieses gerenderte Poster als echtes, bearbeitbares Dokument in Adobe Express — anders als der Rest der App wird das Bild dafür an Adobe übertragen (läuft direkt im Browser über Adobes Express-SDK, kein eigener Server dazwischen). Nur nutzen, wenn das für dich in Ordnung ist.',
-  'poster.adobe.open': 'In Adobe Express öffnen',
+    'Öffnet dein bestbewertetes Foto direkt in Adobe Express, damit du es dort mit Adobes eigenen Poster-Vorlagen und Design-Werkzeugen zu einem fertigen Poster machen kannst — nicht unser eigenes Layout, sondern Adobe selbst als Editor. Anders als der Rest der App wird das Foto dafür an Adobe übertragen (läuft direkt im Browser über Adobes Express-SDK, kein eigener Server dazwischen). Nur nutzen, wenn das für dich in Ordnung ist.',
+  'poster.adobe.open': 'Foto in Adobe Express öffnen',
   'poster.adobe.loadingSdk': 'Adobe Express wird geladen…',
-  'poster.adobe.preparing': 'Poster wird vorbereitet…',
+  'poster.adobe.preparing': 'Foto wird vorbereitet…',
   'poster.adobe.error': 'Adobe Express konnte nicht geöffnet werden: {{message}}',
   'poster.adobe.missingClientId': 'Adobe Express ist nicht konfiguriert (VITE_ADOBE_EXPRESS_CLIENT_ID fehlt).',
 

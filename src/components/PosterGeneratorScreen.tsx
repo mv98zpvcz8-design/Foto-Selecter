@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { toBlob, toPng } from 'html-to-image';
+import { toPng } from 'html-to-image';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 import { derivePosterData, type PosterData } from '../lib/posterData';
 import { availableTemplatesFor, type PosterTemplateDef } from './poster/posterTemplates';
-import { openPosterInExpress } from '../lib/adobeExpressEmbed';
+import { openPhotoInExpress } from '../lib/adobeExpressEmbed';
 
 // Poster aspect ratio follows the ISO A-series (1:√2, e.g. A3 portrait).
 const ASPECT_RATIO = Math.SQRT2;
@@ -69,8 +69,8 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
     }
   }
 
-  async function handleOpenInExpress(templateDef: PosterTemplateDef) {
-    if (!posterData || !exportContainerRef.current) return;
+  async function handleOpenInExpress() {
+    if (!posterData?.heroPhoto.previewUrl) return;
     if (!ADOBE_EXPRESS_CLIENT_ID) {
       setExpressError(t('poster.adobe.missingClientId'));
       return;
@@ -78,15 +78,14 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
     setOpeningInExpress(true);
     setExpressError(null);
     try {
-      const blob = await toBlob(exportContainerRef.current, {
-        width: EXPORT_WIDTH,
-        height: EXPORT_WIDTH * ASPECT_RATIO,
-        pixelRatio: 1,
-      });
-      if (!blob) throw new Error('Rendering the poster image failed');
-      await openPosterInExpress(ADOBE_EXPRESS_CLIENT_ID, blob);
+      // The raw best photo, not our own rendered design — Adobe Express is
+      // meant to be the actual poster editor here (its own templates, text
+      // tools, layout), not a touch-up step on something we already built.
+      const res = await fetch(posterData.heroPhoto.previewUrl);
+      const blob = await res.blob();
+      await openPhotoInExpress(ADOBE_EXPRESS_CLIENT_ID, blob);
     } catch (err) {
-      console.error(`Opening "${templateDef.id}" in Adobe Express failed:`, err);
+      console.error('Opening the photo in Adobe Express failed:', err);
       setExpressError(t('poster.adobe.error', { message: err instanceof Error ? err.message : String(err) }));
     } finally {
       setOpeningInExpress(false);
@@ -145,12 +144,7 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
           <div className="poster-adobe-section">
             <h4>{t('poster.adobe.heading')}</h4>
             <p className="analytics-scope-note">{t('poster.adobe.disclosure')}</p>
-            <button
-              type="button"
-              className="btn"
-              disabled={!selectedTemplate || openingInExpress}
-              onClick={() => selectedTemplate && handleOpenInExpress(selectedTemplate)}
-            >
+            <button type="button" className="btn" disabled={openingInExpress} onClick={handleOpenInExpress}>
               {openingInExpress ? t('poster.adobe.preparing') : t('poster.adobe.open')}
             </button>
             {expressError && <p className="dashboard-error-note">{expressError}</p>}

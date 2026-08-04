@@ -79,12 +79,18 @@ export function getExpressEditor(clientId: string): Promise<CCEverywhereEditor> 
   return instancePromise.then((instance) => instance.editor);
 }
 
-/** Opens the full Adobe Express editor pre-loaded with the given image (our already-rendered poster PNG). */
-export async function openPosterInExpress(clientId: string, posterImage: Blob): Promise<void> {
+/**
+ * Opens the full Adobe Express editor pre-loaded with the given photo —
+ * deliberately the raw selected photo, not a design this app already
+ * rendered, since the point of this integration is to let Express itself
+ * (its own poster templates, text tools, layout) do the poster design,
+ * rather than just touching up something built here.
+ */
+export async function openPhotoInExpress(clientId: string, photo: Blob): Promise<void> {
   const editor = await getExpressEditor(clientId);
   return new Promise((resolve, reject) => {
     editor.createWithAsset(
-      { data: posterImage, dataType: 'blob' },
+      { data: photo, dataType: 'blob' },
       {
         callbacks: {
           onCancel: () => resolve(),
