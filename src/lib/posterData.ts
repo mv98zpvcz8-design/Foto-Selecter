@@ -42,12 +42,11 @@ function deriveMood(photos: PhotoResult[]): PosterMood {
 function derivePeopleFormat(photos: PhotoResult[]): PosterPeopleFormat {
   const crowd = avgTagConfidence(photos, 'crowdLikely');
   const group = avgTagConfidence(photos, 'groupPhotoLikely');
-  const portrait = avgTagConfidence(photos, 'portraitLikely');
   const avgFaces = photos.reduce((acc, p) => acc + (p.facesDetected ?? 0), 0) / Math.max(1, photos.length);
 
   if (avgFaces < 0.3) return 'none';
   if (crowd >= 0.4 || group >= 0.4) return 'group';
-  if (avgFaces >= 1.5 && avgFaces < 2.5 && portrait < 0.5) return 'couple';
+  if (avgFaces >= 1.5 && avgFaces < 2.5) return 'couple';
   return 'single';
 }
 
