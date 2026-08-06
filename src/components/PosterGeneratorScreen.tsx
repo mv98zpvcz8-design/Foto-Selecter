@@ -88,15 +88,21 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
   }
 
   async function handleCreateCanvaDesign() {
-    if (!posterData?.heroPhoto.previewUrl) return;
+    if (!posterData || !selectedTemplate || !exportContainerRef.current) return;
     setCreatingCanvaDesign(true);
     setCanvaError(null);
     try {
-      // The raw best photo, not our own rendered design — Canva is meant to
-      // be the actual poster editor here (its own templates, text tools,
-      // layout), not a touch-up step on something we already built.
-      const photoRes = await fetch(posterData.heroPhoto.previewUrl);
-      const blob = await photoRes.blob();
+      // Upload the poster as we actually built it (the chosen template's
+      // full render), not just the raw source photo — so opening it in
+      // Canva starts from the real composition and is editable there,
+      // instead of forcing a redesign from a blank photo.
+      const dataUrl = await toPng(exportContainerRef.current, {
+        width: EXPORT_WIDTH,
+        height: EXPORT_WIDTH * ASPECT_RATIO,
+        pixelRatio: 1,
+      });
+      const posterRes = await fetch(dataUrl);
+      const blob = await posterRes.blob();
       const res = await fetchJson<{ editUrl: string }>('/api/canva/design/create', { method: 'POST', body: blob });
       if (!res.ok) {
         if (res.status === 401) {
@@ -174,7 +180,12 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
             )}
             {canvaStatus === 'connected' && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <button type="button" className="btn btn-primary" disabled={creatingCanvaDesign} onClick={handleCreateCanvaDesign}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={creatingCanvaDesign || !selectedTemplate}
+                  onClick={handleCreateCanvaDesign}
+                >
                   {creatingCanvaDesign ? t('poster.canva.preparing') : t('poster.canva.open')}
                 </button>
                 <a className="btn btn-ghost btn-sm" href="/api/canva/auth/logout">

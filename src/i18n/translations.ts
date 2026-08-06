@@ -305,11 +305,11 @@ const de: Record<string, string> = {
 
   'poster.canva.heading': 'Als Poster in Canva gestalten',
   'poster.canva.disclosure':
-    'Lädt dein bestbewertetes Foto zu Canva hoch und erstellt dort ein neues Design daraus, damit du es mit Canvas eigenen Poster-Vorlagen und Design-Werkzeugen fertigstellen kannst — nicht unser eigenes Layout, sondern Canva selbst als Editor. Dafür wird das Foto an einen kleinen eigenen Server-Baustein übertragen, der es an Canva weiterreicht (gleiche Art Ausnahme von "100% clientseitig" wie die Lightroom-Anbindung). Nur nutzen, wenn das für dich in Ordnung ist.',
+    'Lädt das ausgewählte Poster genau so, wie es hier gestaltet wurde, zu Canva hoch, damit du es dort mit Canvas eigenen Werkzeugen weiter bearbeiten kannst — nicht das rohe Foto, sondern das fertige Design als Ausgangspunkt. Dafür wird das gerenderte Poster an einen kleinen eigenen Server-Baustein übertragen, der es an Canva weiterreicht (gleiche Art Ausnahme von "100% clientseitig" wie die Lightroom-Anbindung). Nur nutzen, wenn das für dich in Ordnung ist.',
   'poster.canva.checking': 'Canva-Verbindung wird geprüft…',
   'poster.canva.connect': 'Mit Canva verbinden',
   'poster.canva.open': 'Poster-Design in Canva erstellen',
-  'poster.canva.preparing': 'Foto wird hochgeladen…',
+  'poster.canva.preparing': 'Poster wird hochgeladen…',
   'poster.canva.disconnect': 'Trennen',
   'poster.canva.error': 'Canva-Design konnte nicht erstellt werden: {{message}}',
 
@@ -776,11 +776,11 @@ const en: Record<string, string> = {
 
   'poster.canva.heading': 'Design as a poster in Canva',
   'poster.canva.disclosure':
-    "Uploads your best-scoring photo to Canva and creates a new design from it there, so you can finish it with Canva's own poster templates and design tools — not our own layout, Canva itself as the editor. This sends the photo through a small server component of ours that relays it to Canva (the same kind of exception to \"100% clientside\" as the Lightroom integration). Only use this if that's okay with you.",
+    "Uploads the selected poster exactly as designed here to Canva, so you can keep editing it there with Canva's own tools — the finished design as your starting point, not the raw photo. This sends the rendered poster through a small server component of ours that relays it to Canva (the same kind of exception to \"100% clientside\" as the Lightroom integration). Only use this if that's okay with you.",
   'poster.canva.checking': 'Checking Canva connection…',
   'poster.canva.connect': 'Connect to Canva',
   'poster.canva.open': 'Create poster design in Canva',
-  'poster.canva.preparing': 'Uploading photo…',
+  'poster.canva.preparing': 'Uploading poster…',
   'poster.canva.disconnect': 'Disconnect',
   'poster.canva.error': 'Could not create the Canva design: {{message}}',
 

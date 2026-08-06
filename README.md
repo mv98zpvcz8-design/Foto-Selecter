@@ -96,7 +96,7 @@ Ein neuer "Dashboard"-Button im Header öffnet eine geräteweite Übersicht übe
 - **Schriften**: bewusst nur System-Schriften (Georgia/serif, system-ui/sans-serif) — kein Web-Font-Nachladen, damit Poster-Generierung genau wie der Rest der App komplett offline funktioniert.
 ### "Als Poster in Canva gestalten" (optional, mit eigenem Backend-Baustein)
 
-Auf ausdrücklichen Wunsch lässt sich das bestbewertete Foto zu Canva hochladen, wo Canva selbst — mit seinen eigenen Poster-Vorlagen und Design-Werkzeugen — daraus ein Design erstellt (nicht unser eigenes Layout). Bewusst wird dafür das **rohe Foto** übergeben, nicht das bereits von uns gerenderte Poster — der Sinn der Anbindung ist, Canva als Editor zu nutzen, nicht nur ein fertiges Bild dort abzulegen.
+Auf ausdrücklichen Wunsch lässt sich das ausgewählte, fertig gestaltete Poster zu Canva hochladen, damit es dort mit Canvas eigenen Werkzeugen weiterbearbeitet werden kann. Übergeben wird das **gerenderte Poster** (derselbe PNG-Export wie beim Download), nicht das rohe Ausgangsfoto — so landet in Canva die tatsächliche Komposition (Vorlage, Zuschnitt, Typografie) als Startpunkt, statt dass sie dort von Grund auf neu gebaut werden müsste.
 
 **Weg dorthin — zwei gescheiterte/verworfene Anläufe vorher:**
 1. **Photoshop API** (serverseitiges Dokument-Layout mit Ebenen): gescheitert an einer harten Zugangsvoraussetzung — Adobes Firefly-Services-APIs (inkl. Photoshop API) sind ein eigenständiges Enterprise-Produkt, Zugang nur über ein Sales-Gespräch mit Adobe, nicht selbstständig über die Developer Console freischaltbar.
