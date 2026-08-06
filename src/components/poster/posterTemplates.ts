@@ -8,6 +8,7 @@ import { PosterFilmstrip } from './PosterFilmstrip';
 import { PosterBold } from './PosterBold';
 import { PosterCollage } from './PosterCollage';
 import { PosterScrapbook } from './PosterScrapbook';
+import { PosterHalftone } from './PosterHalftone';
 
 export interface PosterTemplateProps {
   data: PosterData;
@@ -25,6 +26,7 @@ export interface PosterTemplateDef {
 
 export const POSTER_TEMPLATES: PosterTemplateDef[] = [
   { id: 'minimalist', nameKey: 'poster.template.minimalist', Component: PosterMinimalist, minPhotos: 1 },
+  { id: 'halftone', nameKey: 'poster.template.halftone', Component: PosterHalftone, minPhotos: 1 },
   { id: 'bold', nameKey: 'poster.template.bold', Component: PosterBold, minPhotos: 1 },
   { id: 'editorial', nameKey: 'poster.template.editorial', Component: PosterEditorial, minPhotos: 1 },
   { id: 'cinematic', nameKey: 'poster.template.cinematic', Component: PosterCinematic, minPhotos: 1 },
