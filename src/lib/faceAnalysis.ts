@@ -6,6 +6,11 @@ import type { EmotionKey } from '../types';
 const MODEL_URL = `${import.meta.env.BASE_URL}models`;
 const EYE_CLOSED_THRESHOLD = 0.2; // eye-aspect-ratio below this = eyes considered closed
 const FACE_BOX_PADDING = 0.25; // include some context around the face, not just eyes/nose
+// face-api's box roughly spans eyebrows-to-chin, not hairline-to-chin -- the
+// crop-safety extent (subjectYExtent) needs extra headroom above that box
+// specifically, or hair/a raised cap/bun regularly ends up sliced off even
+// though the face itself is technically "in frame".
+const HEAD_TOP_PADDING = 0.55;
 // A face is "roughly frontal" (facing the camera) when its landmarks are
 // close to horizontally symmetric around the detected box's center — a
 // coarse proxy for eye contact with the lens, not a real gaze estimate.
@@ -21,6 +26,8 @@ export interface FaceAnalysis {
   emotionScores?: Partial<Record<EmotionKey, number>>;
   /** Average face-box center across all detected faces, normalized to 0-1 of the image dimensions. */
   subjectCenter?: { x: number; y: number };
+  /** Topmost-to-bottommost span across all detected face boxes, normalized 0-1. */
+  subjectYExtent?: { top: number; bottom: number };
 }
 
 let modelsLoaded: Promise<typeof FaceApiNs> | null = null;
@@ -60,8 +67,14 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
   const faceapi = await ensureFaceModelsLoaded();
   const img = await loadImageElement(url);
 
+  // Defaults (416/0.5) are tuned for frontal faces filling a good chunk of
+  // the frame; a full-body action shot with a tilted-back or turned face
+  // gives the detector a small, foreshortened target it often scores just
+  // under threshold or misses outright at low resolution. Bumping input
+  // resolution and relaxing the threshold trades a bit of speed and a few
+  // more false positives for actually catching those faces.
   const detections = await faceapi
-    .detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+    .detectAllFaces(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 608, scoreThreshold: 0.4 }))
     .withFaceLandmarks(true)
     .withFaceExpressions();
 
@@ -70,6 +83,8 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
   let subjectSharpnessRaw: number | undefined;
   let centerXSum = 0;
   let centerYSum = 0;
+  let topMin: number | undefined;
+  let bottomMax: number | undefined;
   const emotionSums: Partial<Record<EmotionKey, number>> = {};
 
   for (const detection of detections) {
@@ -89,6 +104,11 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
     subjectSharpnessRaw = Math.max(subjectSharpnessRaw ?? 0, regionSharpness);
     centerXSum += (box.x + box.width / 2) / img.naturalWidth;
     centerYSum += (box.y + box.height / 2) / img.naturalHeight;
+    const headTopY = Math.max(0, box.y - box.height * HEAD_TOP_PADDING);
+    const topFrac = headTopY / img.naturalHeight;
+    const bottomFrac = (y + height) / img.naturalHeight;
+    topMin = topMin === undefined ? topFrac : Math.min(topMin, topFrac);
+    bottomMax = bottomMax === undefined ? bottomFrac : Math.max(bottomMax, bottomFrac);
 
     for (const [key, value] of Object.entries(detection.expressions)) {
       emotionSums[key as EmotionKey] = (emotionSums[key as EmotionKey] ?? 0) + (value as number);
@@ -104,12 +124,18 @@ export async function analyzeFaces(url: string): Promise<FaceAnalysis> {
 
   const subjectCenter =
     detections.length > 0 ? { x: centerXSum / detections.length, y: centerYSum / detections.length } : undefined;
+  // The bounding span of every detected face, not just their average center
+  // — a photo with faces spread far apart (two people at different heights
+  // in frame) needs its crop centered on that whole span, or a tight-aspect
+  // template can clip whichever face sits furthest from a plain average point.
+  const subjectYExtent = topMin !== undefined && bottomMax !== undefined ? { top: topMin, bottom: bottomMax } : undefined;
 
   return {
     facesDetected: detections.length,
     facesWithClosedEyes: closed,
     facesLookingAtCamera: frontal,
     subjectSharpnessRaw,
+    subjectYExtent,
     emotionScores,
     subjectCenter,
   };

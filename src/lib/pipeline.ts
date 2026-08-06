@@ -162,6 +162,7 @@ export async function runPipeline(
       photo.facesLookingAtCamera = faces.facesLookingAtCamera;
       photo.emotionScores = faces.emotionScores;
       photo.subjectCenter = faces.subjectCenter;
+      photo.subjectYExtent = faces.subjectYExtent;
 
       const subjectSharpnessRaw = faces.subjectSharpnessRaw ?? tileBasedSubjectSharpness(analysis.tileSharpnessRaw);
       photo.subjectSharpnessRaw = subjectSharpnessRaw;

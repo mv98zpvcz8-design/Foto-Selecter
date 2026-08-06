@@ -77,6 +77,7 @@ export interface PhotoResult {
   facesWithClosedEyes?: number;
   facesLookingAtCamera?: number; // coarse frontal-face heuristic, not a real gaze estimate
   subjectCenter?: { x: number; y: number }; // avg face-box center, normalized 0-1; used to crop toward the subject instead of blind center-crop
+  subjectYExtent?: { top: number; bottom: number }; // normalized 0-1 span from the topmost to bottommost detected face box; lets a tight crop center on the whole group instead of an average point that can clip whichever face sits furthest from it
   faceScore?: number; // 0-100; neutral 100 when no faces detected
   motionBlurRatio?: number; // directional gradient-energy imbalance; >>1 suggests directional (motion) blur
 
