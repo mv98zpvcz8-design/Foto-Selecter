@@ -44,6 +44,32 @@ describe('derivePosterData', () => {
     expect(derivePosterData(photos, 'portfolio', 'Portfolio', false)!.peopleFormat).toBe('none');
   });
 
+  it('restricts the gallery to the session containing the best photo, excluding an unrelated shoot from hours apart', () => {
+    const weddingTime = new Date('2026-06-01T14:00:00Z');
+    const concertTime = new Date('2026-06-01T20:30:00Z'); // 6.5h later -- a different event, not the same reception running long
+    const photos = [
+      makePhoto({ status: 'done', isSelected: true, overallScore: 95, captureTime: weddingTime }),
+      makePhoto({ status: 'done', isSelected: true, overallScore: 90, captureTime: new Date(weddingTime.getTime() + 5 * 60 * 1000) }),
+      makePhoto({ status: 'done', isSelected: true, overallScore: 99, captureTime: concertTime }),
+    ];
+    const data = derivePosterData(photos, 'portfolio', 'Portfolio', false);
+    expect(data).not.toBeNull();
+    // The concert photo scores highest overall, so its session wins, not a
+    // naive "top N regardless of which shoot they're from".
+    expect(data!.galleryPhotos.map((p) => p.overallScore)).toEqual([99]);
+    expect(data!.heroPhoto.overallScore).toBe(99);
+    expect(data!.photoCountText).toBe('1');
+  });
+
+  it('keeps the full pool when capture times are missing or too sparse to cluster reliably', () => {
+    const photos = [
+      makePhoto({ status: 'done', isSelected: true, overallScore: 80 }),
+      makePhoto({ status: 'done', isSelected: true, overallScore: 70 }),
+    ];
+    const data = derivePosterData(photos, 'portfolio', 'Portfolio', false);
+    expect(data!.galleryPhotos).toHaveLength(2);
+  });
+
   it('derives a "group" people format from the crowdLikely/groupPhotoLikely tags', () => {
     const photos = [
       makePhoto({

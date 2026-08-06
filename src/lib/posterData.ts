@@ -17,6 +17,41 @@ export interface PosterData {
 }
 
 const MAX_GALLERY_PHOTOS = 6;
+// Long enough to span a whole wedding/concert/match without splitting it,
+// short enough to separate genuinely different shoots uploaded together.
+const SESSION_GAP_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * Restricts the candidate pool to one coherent shoot before gallery photos
+ * are picked. Multi-photo templates (filmstrip, scrapbook, grid, collage)
+ * read as broken when they mix unrelated events just because a batch
+ * happened to be uploaded together — a wedding portrait next to a padel
+ * action shot next to a concert frame doesn't cohere into anything, no
+ * matter how good the individual photos score. Clusters by capture-time
+ * gaps (a multi-hour gap is a reasonable proxy for "different session"
+ * without attempting real event/subject classification, which this
+ * pipeline deliberately doesn't do — see derivePosterData) and keeps
+ * whichever cluster contains the single best-scored photo, since that's
+ * the one the hero uses regardless.
+ */
+function restrictToCoherentSession(pool: PhotoResult[]): PhotoResult[] {
+  const withTime = pool.filter((p): p is PhotoResult & { captureTime: Date } => p.captureTime != null);
+  if (withTime.length < 2) return pool;
+
+  const sorted = [...withTime].sort((a, b) => a.captureTime.getTime() - b.captureTime.getTime());
+  const clusters: PhotoResult[][] = [[sorted[0]]];
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = sorted[i].captureTime.getTime() - sorted[i - 1].captureTime.getTime();
+    if (gap > SESSION_GAP_MS) clusters.push([]);
+    clusters[clusters.length - 1].push(sorted[i]);
+  }
+
+  if (clusters.length <= 1) return pool;
+
+  const topPhoto = pool[0];
+  const winningCluster = clusters.find((c) => c.includes(topPhoto)) ?? clusters[0];
+  return winningCluster.sort((a, b) => (b.overallScore ?? 0) - (a.overallScore ?? 0));
+}
 
 function avgTagConfidence(photos: PhotoResult[], key: string): number {
   if (photos.length === 0) return 0;
@@ -89,7 +124,8 @@ export function derivePosterData(
   const pool = candidates.length > 0 ? candidates : photos.filter((p) => p.status === 'done');
   if (pool.length === 0) return null;
 
-  const galleryPhotos = pool.slice(0, MAX_GALLERY_PHOTOS);
+  const coherentPool = restrictToCoherentSession(pool);
+  const galleryPhotos = coherentPool.slice(0, MAX_GALLERY_PHOTOS);
   const heroPhoto = galleryPhotos[0];
 
   const avgColors: RgbColor[] = galleryPhotos
@@ -101,7 +137,10 @@ export function derivePosterData(
     purpose,
     titleText,
     dateText: formatDateRange(galleryPhotos),
-    photoCountText: `${pool.length}`,
+    // The coherent subset, not the whole pool -- claiming "12 photos" on a
+    // poster that's actually only drawing from 5 of them (the rest being a
+    // different session entirely) would misrepresent what the poster is.
+    photoCountText: `${coherentPool.length}`,
     mood: deriveMood(galleryPhotos),
     peopleFormat: derivePeopleFormat(galleryPhotos),
     palette: buildPalette(avgColors, preferDarkPalette),
