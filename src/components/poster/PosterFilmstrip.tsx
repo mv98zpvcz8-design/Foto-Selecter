@@ -1,26 +1,43 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
+import { SprocketEdge } from './SprocketEdge';
+import { grainOverlayStyle } from './posterTexture';
 
-/** A horizontal strip of 3-5 photos stacked down the frame like film frames, with the title running vertically alongside — only generated when there are enough distinct good photos to justify a sequence (see minPhotos in posterTemplates.ts). Structurally distinct from the grid template (a single strip, not a grid) and from every hero-image template (no single dominant photo). */
+/**
+ * A vertical stack of photos actually built like a strip of film: real
+ * perforated edges on both outer sides (see SprocketEdge), each frame
+ * numbered the way a lab prints frame numbers on the film base, and grain
+ * for print cohesion — the name was a metaphor before, now the object
+ * itself looks like what it's named after. Only generated when there are
+ * enough distinct good photos to justify a sequence (see minPhotos in
+ * posterTemplates.ts). Structurally distinct from the grid template (a
+ * single strip, not a grid) and from every hero-image template (no single
+ * dominant photo).
+ */
 export function PosterFilmstrip({ data, widthPx, heightPx }: PosterTemplateProps) {
   const s = scaleOf(widthPx);
   const photos = data.galleryPhotos.slice(0, 5);
-  const gap = 6 * s;
-  const railWidth = 90 * s;
+  const gap = 10 * s;
+  const railWidth = 84 * s;
+  const sprocketWidth = 40 * s;
 
   return (
     <div
       style={{
+        position: 'relative',
         width: widthPx,
         height: heightPx,
-        background: data.palette.background,
+        background: '#141210',
         display: 'flex',
         boxSizing: 'border-box',
-        padding: gap * 3,
-        fontFamily: 'system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif',
+        padding: `${gap * 3}px ${sprocketWidth + gap * 2}px`,
+        fontFamily: '"Courier New", ui-monospace, monospace',
       }}
     >
+      <SprocketEdge side="left" width={sprocketWidth} color="#2a251f" />
+      <SprocketEdge side="right" width={sprocketWidth} color="#2a251f" />
+
       <div
         style={{
           width: railWidth,
@@ -33,10 +50,11 @@ export function PosterFilmstrip({ data, widthPx, heightPx }: PosterTemplateProps
           style={{
             writingMode: 'vertical-rl',
             transform: 'rotate(180deg)',
+            fontFamily: 'system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif',
             fontSize: 26 * s,
             fontWeight: 700,
             letterSpacing: 4 * s,
-            color: data.palette.text,
+            color: '#f0ece2',
             textTransform: 'uppercase',
           }}
         >
@@ -44,13 +62,35 @@ export function PosterFilmstrip({ data, widthPx, heightPx }: PosterTemplateProps
         </div>
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap, minWidth: 0 }}>
-        {photos.map((photo) => (
-          <div key={photo.id} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-            <img
-              src={photo.previewUrl}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: smartObjectPosition(photo), display: 'block' }}
-            />
+        {photos.map((photo, i) => (
+          <div key={photo.id} style={{ flex: 1, minHeight: 0, display: 'flex', gap: 6 * s, alignItems: 'stretch' }}>
+            <div
+              style={{
+                writingMode: 'vertical-rl',
+                fontSize: 12 * s,
+                letterSpacing: 1 * s,
+                color: '#8a8272',
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {String(24 + i).padStart(2, '0')}A
+            </div>
+            <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <img
+                src={photo.previewUrl}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: smartObjectPosition(photo),
+                  display: 'block',
+                }}
+              />
+              <div style={grainOverlayStyle(0.09)} />
+            </div>
           </div>
         ))}
       </div>
