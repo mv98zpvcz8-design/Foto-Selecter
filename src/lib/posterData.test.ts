@@ -70,6 +70,19 @@ describe('derivePosterData', () => {
     expect(data!.galleryPhotos).toHaveLength(2);
   });
 
+  it('derives "couple" for a two-person photo even though groupPhotoLikely also tags it (that tag fires for any 2-8 faces)', () => {
+    const photos = [
+      makePhoto({
+        status: 'done',
+        isSelected: true,
+        overallScore: 80,
+        facesDetected: 2,
+        semanticTags: [tag('groupPhotoLikely', 0.55)],
+      }),
+    ];
+    expect(derivePosterData(photos, 'event', 'Event', false)!.peopleFormat).toBe('couple');
+  });
+
   it('derives a "group" people format from the crowdLikely/groupPhotoLikely tags', () => {
     const photos = [
       makePhoto({

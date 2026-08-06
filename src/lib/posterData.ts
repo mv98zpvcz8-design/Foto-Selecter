@@ -3,6 +3,8 @@ import { buildPalette, type PosterPalette, type RgbColor } from './colorPalette'
 
 export type PosterMood = 'monochrome' | 'colorful' | 'warm' | 'cool' | 'minimal';
 export type PosterPeopleFormat = 'single' | 'couple' | 'group' | 'none';
+/** How much expressed emotion/action the shoot actually shows, from face-api's own expression scores — used to steer which template register (restrained vs. loud) suits the photos, not to invent a mood the pixels don't support. */
+export type PosterEnergy = 'calm' | 'expressive';
 
 export interface PosterData {
   purpose: Purpose;
@@ -11,6 +13,7 @@ export interface PosterData {
   photoCountText: string;
   mood: PosterMood;
   peopleFormat: PosterPeopleFormat;
+  energy: PosterEnergy;
   palette: PosterPalette;
   heroPhoto: PhotoResult;
   galleryPhotos: PhotoResult[];
@@ -73,15 +76,40 @@ function deriveMood(photos: PhotoResult[]): PosterMood {
   return 'minimal';
 }
 
-/** Reuses the same face-count-derived tags the semantic filters already expose — no new detection, just picking the most common formation across the gallery selection. */
+/**
+ * "Expressive" means the faces in this shoot are actually showing something
+ * (joy, surprise, exertion) rather than neutral/composed expressions —
+ * derived from face-api's own per-photo expression scores, already computed
+ * during analysis, not a new inference. A high-energy sports celebration or
+ * a laughing group calls for a bolder, louder template register than a
+ * calm, composed portrait does; this is what lets template selection follow
+ * that instead of treating every shoot the same way.
+ */
+function deriveEnergy(photos: PhotoResult[]): PosterEnergy {
+  const withEmotion = photos.filter((p) => p.emotionScores);
+  if (withEmotion.length === 0) return 'calm';
+  const avgNonNeutral =
+    withEmotion.reduce((acc, p) => acc + (1 - (p.emotionScores!.neutral ?? 0)), 0) / withEmotion.length;
+  return avgNonNeutral >= 0.45 ? 'expressive' : 'calm';
+}
+
+/**
+ * Reuses the face-count signal the semantic filters already expose — no new
+ * detection, just picking the most common formation across the gallery
+ * selection. Deliberately doesn't use the `groupPhotoLikely` tag here: it
+ * fires at a flat confidence for any 2-8 face photo (see semanticTags.ts),
+ * which is the same range as "couple", so checking it before the couple
+ * band meant a two-person portrait could never actually classify as
+ * "couple" — `crowdLikely` (a real 4+-face signal) is the only tag worth
+ * trusting for "this is clearly a bigger group than two people".
+ */
 function derivePeopleFormat(photos: PhotoResult[]): PosterPeopleFormat {
   const crowd = avgTagConfidence(photos, 'crowdLikely');
-  const group = avgTagConfidence(photos, 'groupPhotoLikely');
   const avgFaces = photos.reduce((acc, p) => acc + (p.facesDetected ?? 0), 0) / Math.max(1, photos.length);
 
   if (avgFaces < 0.3) return 'none';
-  if (crowd >= 0.4 || group >= 0.4) return 'group';
-  if (avgFaces >= 1.5 && avgFaces < 2.5) return 'couple';
+  if (crowd >= 0.4 || avgFaces >= 2.5) return 'group';
+  if (avgFaces >= 1.5) return 'couple';
   return 'single';
 }
 
@@ -143,6 +171,7 @@ export function derivePosterData(
     photoCountText: `${coherentPool.length}`,
     mood: deriveMood(galleryPhotos),
     peopleFormat: derivePeopleFormat(galleryPhotos),
+    energy: deriveEnergy(galleryPhotos),
     palette: buildPalette(avgColors, preferDarkPalette),
     heroPhoto,
     galleryPhotos,
