@@ -3,14 +3,13 @@ import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
 import { SprocketEdge } from './SprocketEdge';
 import { ResizedImage } from './ResizedImage';
-import { grainOverlayStyle } from './posterTexture';
 
 /**
  * A vertical stack of photos actually built like a strip of film: real
- * perforated edges on both outer sides (see SprocketEdge), each frame
- * numbered the way a lab prints frame numbers on the film base, and grain
- * for print cohesion — the name was a metaphor before, now the object
- * itself looks like what it's named after. Only generated when there are
+ * perforated edges on both outer sides (see SprocketEdge) and each frame
+ * numbered the way a lab prints frame numbers on the film base — the name
+ * was a metaphor before, now the object itself looks like what it's named
+ * after. Only generated when there are
  * enough distinct good photos to justify a sequence (see minPhotos in
  * posterTemplates.ts). Structurally distinct from the grid template (a
  * single strip, not a grid) and from every hero-image template (no single
@@ -90,7 +89,6 @@ export function PosterFilmstrip({ data, widthPx, heightPx }: PosterTemplateProps
                   display: 'block',
                 }}
               />
-              <div style={grainOverlayStyle(0.09)} />
             </div>
           </div>
         ))}

@@ -1,6 +1,5 @@
 import type { PhotoResult } from '../../types';
 import { smartObjectPosition } from './smartObjectPosition';
-import { grainOverlayStyle, halftoneOverlayStyle } from './posterTexture';
 
 interface DuotoneImageProps {
   photo: PhotoResult;
@@ -8,8 +7,6 @@ interface DuotoneImageProps {
   shadowColor: string;
   /** Light end of the duotone gradient (usually the same hue, lightened). */
   highlightColor: string;
-  grain?: number;
-  halftone?: number;
 }
 
 /**
@@ -20,10 +17,9 @@ interface DuotoneImageProps {
  * produces the "photo's own tonal detail, but mapped through two deliberate
  * colors" look (like a print duotone), unlike a flat single-color tint
  * (which just darkens/desaturates uniformly and reads as a CSS filter, not
- * a design choice). Grain + halftone are separate overlays on top so the
- * result reads as printed/textured, not digitally flat.
+ * a design choice).
  */
-export function DuotoneImage({ photo, shadowColor, highlightColor, grain = 0.14, halftone = 0 }: DuotoneImageProps) {
+export function DuotoneImage({ photo, shadowColor, highlightColor }: DuotoneImageProps) {
   return (
     <>
       <div
@@ -47,8 +43,6 @@ export function DuotoneImage({ photo, shadowColor, highlightColor, grain = 0.14,
           mixBlendMode: 'luminosity',
         }}
       />
-      {halftone > 0 && <div style={halftoneOverlayStyle(highlightColor, halftone)} />}
-      {grain > 0 && <div style={grainOverlayStyle(grain)} />}
     </>
   );
 }

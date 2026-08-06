@@ -62,7 +62,7 @@ export function PosterGalleryPrint({ data, widthPx, heightPx }: PosterTemplatePr
           }}
         />
         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: shadowColor }}>
-          <DuotoneImage photo={data.heroPhoto} shadowColor={shadowColor} highlightColor={highlightColor} grain={0.1} />
+          <DuotoneImage photo={data.heroPhoto} shadowColor={shadowColor} highlightColor={highlightColor} />
         </div>
       </div>
 

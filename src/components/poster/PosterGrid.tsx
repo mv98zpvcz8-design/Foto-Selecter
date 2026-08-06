@@ -1,13 +1,11 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
-import { grainOverlayStyle } from './posterTexture';
 import { useT } from '../../i18n/useT';
 
 /**
  * A gallery wall of small framed prints — each photo gets its own white mat
- * and soft shadow rather than sitting flush in a bare grid cell, with grain
- * for print cohesion across photos that were shot in different light. The
+ * and soft shadow rather than sitting flush in a bare grid cell. The
  * "contact sheet as poster" idea, but reading as considered small prints
  * instead of thumbnails. Structurally distinct from every other template:
  * no single hero image dominates.
@@ -64,7 +62,6 @@ export function PosterGrid({ data, widthPx, heightPx }: PosterTemplateProps) {
                   filter: 'saturate(1.03) contrast(1.03)',
                 }}
               />
-              <div style={grainOverlayStyle(0.08)} />
             </div>
           </div>
         ))}

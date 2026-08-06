@@ -43,7 +43,7 @@ describe('availableTemplatesFor', () => {
     const expressiveResult = availableTemplatesFor(makePosterData({ energy: 'expressive' })).map((t) => t.id);
 
     expect(calmResult[0]).toBe('minimalist'); // first calm-recommended template in registry order
-    expect(expressiveResult[0]).toBe('halftone'); // first expressive-recommended template in registry order
+    expect(expressiveResult[0]).toBe('coverStory'); // first expressive-recommended template in registry order
     // Same available set either way for a single-photo, single-person shoot -- only the order changes.
     expect(new Set(calmResult)).toEqual(new Set(expressiveResult));
   });

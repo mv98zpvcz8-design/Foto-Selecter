@@ -1,7 +1,6 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
-import { grainOverlayStyle } from './posterTexture';
 import { useT } from '../../i18n/useT';
 
 /** One strong photo, edge-to-edge, with only a subtle gradient + small overlay caption at the bottom — the opposite extreme from the minimalist template's whitespace-and-frame approach. */
@@ -32,7 +31,6 @@ export function PosterCinematic({ data, widthPx, heightPx }: PosterTemplateProps
           objectPosition: smartObjectPosition(data.heroPhoto),
         }}
       />
-      <div style={grainOverlayStyle(0.07)} />
       <div
         style={{
           position: 'absolute',

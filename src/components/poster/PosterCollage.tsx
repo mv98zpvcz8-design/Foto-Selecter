@@ -2,7 +2,6 @@ import type { PosterTemplateProps } from './posterTemplates';
 import type { PhotoResult } from '../../types';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
-import { grainOverlayStyle } from './posterTexture';
 
 interface TilePlacement {
   left: number;
@@ -74,7 +73,6 @@ function CollageTile({ photo, placement, s }: { photo: PhotoResult; placement: T
             filter: 'saturate(1.08) contrast(1.04)',
           }}
         />
-        <div style={grainOverlayStyle(0.1)} />
       </div>
     </div>
   );

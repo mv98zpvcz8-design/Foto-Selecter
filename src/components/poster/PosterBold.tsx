@@ -5,12 +5,11 @@ import { adjustSaturation, hexToRgb, mixRgb, toHex } from '../../lib/colorPalett
 import { useT } from '../../i18n/useT';
 
 /**
- * Full-bleed duotone hero with real halftone/grain print texture, a
- * two-zone typographic layout (small info plate up top, heavy headline
- * anchored to a bottom scrim), and a rotated color-chip accent — the
- * sports-editorial "archive remix" look from the references (dramatic
- * duotone crop, print grain, negative-space type), built from this shoot's
- * own palette rather than a fixed brand color.
+ * Full-bleed duotone hero, a two-zone typographic layout (small info plate
+ * up top, heavy headline anchored to a bottom scrim), and a rotated
+ * color-chip accent — the sports-editorial "archive remix" look from the
+ * references (dramatic duotone crop, negative-space type), built from this
+ * shoot's own palette rather than a fixed brand color.
  */
 export function PosterBold({ data, widthPx, heightPx }: PosterTemplateProps) {
   const t = useT();
@@ -39,7 +38,7 @@ export function PosterBold({ data, widthPx, heightPx }: PosterTemplateProps) {
         fontFamily: '"Arial Narrow", "Helvetica Neue", Arial, sans-serif',
       }}
     >
-      <DuotoneImage photo={data.heroPhoto} shadowColor={shadowColor} highlightColor={highlightColor} grain={0.16} halftone={0.16} />
+      <DuotoneImage photo={data.heroPhoto} shadowColor={shadowColor} highlightColor={highlightColor} />
 
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: barWidth, background: toHex(punchy), zIndex: 3 }} />
 

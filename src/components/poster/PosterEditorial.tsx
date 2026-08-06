@@ -1,7 +1,6 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
-import { grainOverlayStyle } from './posterTexture';
 import { useT } from '../../i18n/useT';
 
 /** Magazine-style: photo occupying the top two-thirds, a text block below with a small uppercase kicker, a serif headline, and a byline-style meta line — a fundamentally different reading order (image first, then a distinct text zone) than the overlay-based templates. */
@@ -27,7 +26,6 @@ export function PosterEditorial({ data, widthPx, heightPx }: PosterTemplateProps
           alt=""
           style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: smartObjectPosition(data.heroPhoto), display: 'block' }}
         />
-        <div style={grainOverlayStyle(0.06)} />
       </div>
       <div style={{ flex: 1, padding: `${44 * s}px ${52 * s}px`, display: 'flex', flexDirection: 'column' }}>
         <div

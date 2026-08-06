@@ -105,11 +105,17 @@ function deriveEnergy(photos: PhotoResult[]): PosterEnergy {
  */
 function derivePeopleFormat(photos: PhotoResult[]): PosterPeopleFormat {
   const crowd = avgTagConfidence(photos, 'crowdLikely');
-  const avgFaces = photos.reduce((acc, p) => acc + (p.facesDetected ?? 0), 0) / Math.max(1, photos.length);
+  // Peak, not average, face count: a couple posed artistically will often
+  // have frames where one partner's face is turned away or occluded and
+  // face-api only registers one face, which drags an average below the
+  // couple threshold even though a wedding gallery is unmistakably two
+  // people. Whether they were ever both detected together in one frame is
+  // the more reliable signal than how many frames show both at once.
+  const maxFaces = photos.reduce((max, p) => Math.max(max, p.facesDetected ?? 0), 0);
 
-  if (avgFaces < 0.3) return 'none';
-  if (crowd >= 0.4 || avgFaces >= 2.5) return 'group';
-  if (avgFaces >= 1.5) return 'couple';
+  if (maxFaces === 0) return 'none';
+  if (crowd >= 0.4 || maxFaces >= 3) return 'group';
+  if (maxFaces >= 2) return 'couple';
   return 'single';
 }
 

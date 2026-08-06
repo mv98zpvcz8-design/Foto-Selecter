@@ -8,7 +8,7 @@ import { PosterFilmstrip } from './PosterFilmstrip';
 import { PosterBold } from './PosterBold';
 import { PosterCollage } from './PosterCollage';
 import { PosterScrapbook } from './PosterScrapbook';
-import { PosterHalftone } from './PosterHalftone';
+import { PosterCoverStory } from './PosterCoverStory';
 import { PosterGalleryPrint } from './PosterGalleryPrint';
 import { PosterContactSheet } from './PosterContactSheet';
 
@@ -46,7 +46,7 @@ export interface PosterTemplateDef {
 
 export const POSTER_TEMPLATES: PosterTemplateDef[] = [
   { id: 'minimalist', nameKey: 'poster.template.minimalist', Component: PosterMinimalist, minPhotos: 1, recommendedEnergy: 'calm' },
-  { id: 'halftone', nameKey: 'poster.template.halftone', Component: PosterHalftone, minPhotos: 1, recommendedEnergy: 'expressive' },
+  { id: 'coverStory', nameKey: 'poster.template.coverStory', Component: PosterCoverStory, minPhotos: 1, recommendedEnergy: 'expressive' },
   { id: 'bold', nameKey: 'poster.template.bold', Component: PosterBold, minPhotos: 1, recommendedEnergy: 'expressive' },
   { id: 'editorial', nameKey: 'poster.template.editorial', Component: PosterEditorial, minPhotos: 1, recommendedEnergy: 'calm' },
   { id: 'cinematic', nameKey: 'poster.template.cinematic', Component: PosterCinematic, minPhotos: 1, recommendedEnergy: 'expressive' },

@@ -83,6 +83,15 @@ describe('derivePosterData', () => {
     expect(derivePosterData(photos, 'event', 'Event', false)!.peopleFormat).toBe('couple');
   });
 
+  it('derives "couple" from peak face count even when most frames only show one face (artistic posing turns a partner\'s face away)', () => {
+    const photos = [
+      makePhoto({ status: 'done', isSelected: true, overallScore: 90, facesDetected: 1 }),
+      makePhoto({ status: 'done', isSelected: true, overallScore: 85, facesDetected: 1 }),
+      makePhoto({ status: 'done', isSelected: true, overallScore: 80, facesDetected: 2 }),
+    ];
+    expect(derivePosterData(photos, 'event', 'Event', false)!.peopleFormat).toBe('couple');
+  });
+
   it('derives a "group" people format from the crowdLikely/groupPhotoLikely tags', () => {
     const photos = [
       makePhoto({

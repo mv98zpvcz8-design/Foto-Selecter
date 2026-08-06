@@ -10,9 +10,8 @@ const cache = new Map<string, string>();
  * A `mask-image` on a strip spanning the full export height (thousands of
  * px) is expensive for html-to-image to rasterize during PNG export — slow
  * enough on this template that a download click could look like it did
- * nothing. A small pre-rendered tile (the same trick posterTexture.ts
- * already uses for grain) repeats via a plain background-image, which
- * exports fast because it's just a bitmap tile, not a live filter.
+ * nothing. A small pre-rendered tile repeats via a plain background-image,
+ * which exports fast because it's just a bitmap tile, not a live filter.
  */
 function sprocketTileDataUrl(width: number, color: string): string {
   const key = `${Math.round(width)}:${color}`;

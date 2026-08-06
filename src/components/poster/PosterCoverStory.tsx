@@ -1,15 +1,16 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
-import { HalftoneImage } from './HalftoneImage';
+import { smartObjectPosition } from './smartObjectPosition';
 import { useT } from '../../i18n/useT';
 
 /**
- * Real print-halftone hero (see halftone.ts) under a magazine-masthead
- * typographic treatment — one confident photo and tracked-out type, no
- * collage elements. The deliberate opposite of PosterCollage/PosterScrapbook:
- * for a shoot where one exceptional frame should carry the whole poster.
+ * One confident full-bleed photo, shown in its real color, under a magazine
+ * masthead typographic treatment — top/bottom gradient scrims frame a big
+ * tracked-out title and a small mood/people line, no collage elements. The
+ * deliberate opposite of PosterCollage/PosterScrapbook: for a shoot where
+ * one exceptional frame should carry the whole poster.
  */
-export function PosterHalftone({ data, widthPx, heightPx }: PosterTemplateProps) {
+export function PosterCoverStory({ data, widthPx, heightPx }: PosterTemplateProps) {
   const t = useT();
   const s = scaleOf(widthPx);
 
@@ -24,7 +25,18 @@ export function PosterHalftone({ data, widthPx, heightPx }: PosterTemplateProps)
         fontFamily: '"Helvetica Neue", Arial, sans-serif',
       }}
     >
-      <HalftoneImage photo={data.heroPhoto} widthPx={widthPx} heightPx={heightPx} />
+      <img
+        src={data.heroPhoto.previewUrl}
+        alt=""
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: smartObjectPosition(data.heroPhoto),
+        }}
+      />
 
       <div
         style={{

@@ -2,7 +2,6 @@ import type { PosterTemplateProps } from './posterTemplates';
 import type { PhotoResult } from '../../types';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
-import { grainOverlayStyle } from './posterTexture';
 import { useT } from '../../i18n/useT';
 
 // A jagged, hand-torn top edge, approximated as a fixed zig-zag clip-path —
@@ -87,7 +86,6 @@ function PhotoCutout({ photo, placement, s }: { photo: PhotoResult; placement: P
             filter: 'saturate(0.92) contrast(1.05)',
           }}
         />
-        <div style={grainOverlayStyle(0.12)} />
       </div>
     </div>
   );
@@ -111,8 +109,6 @@ export function PosterScrapbook({ data, widthPx, heightPx }: PosterTemplateProps
         fontFamily: 'Georgia, "Times New Roman", serif',
       }}
     >
-      <div style={grainOverlayStyle(0.05, 'multiply')} />
-
       {photos.map((photo, i) => (
         <PhotoCutout key={photo.id} photo={photo} placement={PLACEMENTS[i]} s={s} />
       ))}
