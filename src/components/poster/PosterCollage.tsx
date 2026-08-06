@@ -27,6 +27,13 @@ const TILES: TilePlacement[] = [
   { left: 40, top: 60, width: 36, height: 24, rotateDeg: -4, z: 5, framed: true },
 ];
 
+// Applied only to unframed tiles -- mixing a torn-edge snapshot in among
+// the clean polaroid-framed ones reads as an intentionally curated stack of
+// different print styles, instead of every tile being the same flat
+// rectangle (which is what made this look like a generic moodboard grid).
+const TORN_EDGE_CLIP =
+  'polygon(0% 3%, 7% 0%, 15% 3%, 23% 0%, 31% 3%, 39% 0%, 47% 3%, 55% 0%, 63% 3%, 71% 0%, 79% 3%, 87% 0%, 95% 3%, 100% 0%, 100% 97%, 93% 100%, 85% 97%, 77% 100%, 69% 97%, 61% 100%, 53% 97%, 45% 100%, 37% 97%, 29% 100%, 21% 97%, 13% 100%, 5% 97%, 0% 100%)';
+
 function CollageTile({ photo, placement, s }: { photo: PhotoResult; placement: TilePlacement; s: number }) {
   const pad = placement.framed ? 8 * s : 0;
   return (
@@ -39,12 +46,22 @@ function CollageTile({ photo, placement, s }: { photo: PhotoResult; placement: T
         height: `${placement.height}%`,
         transform: `rotate(${placement.rotateDeg}deg)`,
         zIndex: placement.z,
-        background: '#fff',
+        background: placement.framed ? '#fff' : 'transparent',
         padding: pad,
-        boxShadow: `0 ${8 * s}px ${22 * s}px rgba(0,0,0,0.32)`,
+        boxShadow: placement.framed
+          ? `0 ${8 * s}px ${22 * s}px rgba(0,0,0,0.32)`
+          : `0 ${6 * s}px ${16 * s}px rgba(0,0,0,0.28)`,
       }}
     >
-      <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          overflow: 'hidden',
+          clipPath: placement.framed ? undefined : TORN_EDGE_CLIP,
+        }}
+      >
         <img
           src={photo.previewUrl}
           alt=""
