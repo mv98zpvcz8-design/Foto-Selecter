@@ -2,6 +2,7 @@ import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
 import { SprocketEdge } from './SprocketEdge';
+import { ResizedImage } from './ResizedImage';
 import { grainOverlayStyle } from './posterTexture';
 
 /**
@@ -78,9 +79,9 @@ export function PosterFilmstrip({ data, widthPx, heightPx }: PosterTemplateProps
               {String(24 + i).padStart(2, '0')}A
             </div>
             <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <img
-                src={photo.previewUrl}
-                alt=""
+              <ResizedImage
+                photo={photo}
+                maxDim={Math.round(widthPx * 0.9)}
                 style={{
                   width: '100%',
                   height: '100%',

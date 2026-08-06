@@ -1,12 +1,46 @@
+// Keyed by width+color since the hole/pitch geometry and tile color depend
+// on both — a poster's preview (360px wide) and its export (3508px wide)
+// need visibly different tile sizes, and Filmstrip/ContactSheet use
+// different band colors.
+const cache = new Map<string, string>();
+
 /**
- * A film/proof-sheet perforation strip — a CSS radial-gradient mask
- * punching evenly-spaced round holes out of a solid band. Shared by any
- * template that wants the "physical film" cue (PosterContactSheet,
- * PosterFilmstrip) rather than each redefining the same mask math.
+ * Renders one repeat-tile of a film/proof-sheet perforation strip to a
+ * canvas and returns it as a data URL, instead of a live CSS mask-image.
+ * A `mask-image` on a strip spanning the full export height (thousands of
+ * px) is expensive for html-to-image to rasterize during PNG export — slow
+ * enough on this template that a download click could look like it did
+ * nothing. A small pre-rendered tile (the same trick posterTexture.ts
+ * already uses for grain) repeats via a plain background-image, which
+ * exports fast because it's just a bitmap tile, not a live filter.
  */
-export function SprocketEdge({ side, width, color = '#d8d3c6' }: { side: 'left' | 'right'; width: number; color?: string }) {
+function sprocketTileDataUrl(width: number, color: string): string {
+  const key = `${Math.round(width)}:${color}`;
+  const cached = cache.get(key);
+  if (cached) return cached;
+
   const holeSize = width * 0.42;
   const pitch = holeSize * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(width));
+  canvas.height = Math.max(1, Math.round(pitch));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, pitch / 2, holeSize / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  const url = canvas.toDataURL('image/png');
+  cache.set(key, url);
+  return url;
+}
+
+/** A film/proof-sheet perforation strip. Shared by any template that wants the "physical film" cue (PosterContactSheet, PosterFilmstrip) rather than each redefining the same tile. */
+export function SprocketEdge({ side, width, color = '#d8d3c6' }: { side: 'left' | 'right'; width: number; color?: string }) {
+  const pitch = width * 0.84;
   return (
     <div
       style={{
@@ -15,15 +49,10 @@ export function SprocketEdge({ side, width, color = '#d8d3c6' }: { side: 'left' 
         top: 0,
         bottom: 0,
         width,
-        background: color,
-        WebkitMaskImage: `radial-gradient(circle ${holeSize / 2}px at 50% 0px, transparent ${holeSize / 2}px, black ${holeSize / 2 + 0.5}px)`,
-        WebkitMaskRepeat: 'repeat-y',
-        WebkitMaskPosition: `0 ${pitch / 2}px`,
-        WebkitMaskSize: `${width}px ${pitch}px`,
-        maskImage: `radial-gradient(circle ${holeSize / 2}px at 50% 0px, transparent ${holeSize / 2}px, black ${holeSize / 2 + 0.5}px)`,
-        maskRepeat: 'repeat-y',
-        maskPosition: `0 ${pitch / 2}px`,
-        maskSize: `${width}px ${pitch}px`,
+        backgroundImage: `url(${sprocketTileDataUrl(width, color)})`,
+        backgroundRepeat: 'repeat-y',
+        backgroundPosition: `0 ${pitch / 2}px`,
+        backgroundSize: `${width}px ${pitch}px`,
       }}
     />
   );

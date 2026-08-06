@@ -2,6 +2,7 @@ import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
 import { SprocketEdge } from './SprocketEdge';
+import { ResizedImage } from './ResizedImage';
 import { useT } from '../../i18n/useT';
 
 /**
@@ -63,9 +64,9 @@ export function PosterContactSheet({ data, widthPx, heightPx }: PosterTemplatePr
         {photos.map((photo, i) => (
           <div key={photo.id} style={{ position: 'relative', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden', background: '#00000010' }}>
-              <img
-                src={photo.previewUrl}
-                alt=""
+              <ResizedImage
+                photo={photo}
+                maxDim={Math.round((widthPx / columns) * 1.6)}
                 style={{
                   width: '100%',
                   height: '100%',
