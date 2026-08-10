@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import { toBlob } from 'html-to-image';
 import { useAppState } from '../state/AppState';
 import { useT } from '../i18n/useT';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
@@ -68,17 +68,24 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
     setExporting(true);
     setError(null);
     try {
-      const dataUrl = await toPng(exportContainerRef.current, {
+      const blob = await toBlob(exportContainerRef.current, {
         width: EXPORT_WIDTH,
         height: EXPORT_WIDTH * ASPECT_RATIO,
         pixelRatio: 1,
       });
+      if (!blob) throw new Error('export produced no image data');
+      // An object URL, not a data: URI -- mobile Safari has historically
+      // failed silently (or ignored the `download` attribute entirely) on
+      // large data: URIs, which is exactly what an A3@300dpi PNG produces.
+      // Object URLs reference the blob directly and don't hit that limit.
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = dataUrl;
+      a.href = url;
       a.download = `poster-${templateDef.id}-${Date.now()}.png`;
       document.body.appendChild(a);
       a.click();
       a.remove();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Poster export failed:', err);
       setError(t('poster.exportError'));
@@ -96,13 +103,12 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
       // full render), not just the raw source photo — so opening it in
       // Canva starts from the real composition and is editable there,
       // instead of forcing a redesign from a blank photo.
-      const dataUrl = await toPng(exportContainerRef.current, {
+      const blob = await toBlob(exportContainerRef.current, {
         width: EXPORT_WIDTH,
         height: EXPORT_WIDTH * ASPECT_RATIO,
         pixelRatio: 1,
       });
-      const posterRes = await fetch(dataUrl);
-      const blob = await posterRes.blob();
+      if (!blob) throw new Error('export produced no image data');
       const res = await fetchJson<{ editUrl: string }>('/api/canva/design/create', { method: 'POST', body: blob });
       if (!res.ok) {
         if (res.status === 401) {
