@@ -74,25 +74,39 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
         pixelRatio: 1,
       });
       if (!blob) throw new Error('export produced no image data');
-      // An object URL, not a data: URI -- mobile Safari has historically
-      // failed silently (or ignored the `download` attribute entirely) on
-      // large data: URIs, which is exactly what an A3@300dpi PNG produces.
-      // Object URLs reference the blob directly and don't hit that limit.
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `poster-${templateDef.id}-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      // iOS Safari shows its own "Do you want to download?" sheet and only
-      // fetches the blob: URL after the person taps Download in it -- which
-      // happens well after this function returns. Revoking synchronously
-      // here (as the various "correct" examples online do) invalidates the
-      // URL before Safari ever reads it, so the download silently fails
-      // with nothing landing in Files and no error reaching this page.
-      // Delaying the revoke gives that manual tap time to happen first.
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+
+      const filename = `poster-${templateDef.id}-${Date.now()}.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      // iOS Safari's anchor-tag `download` flow for JS-generated blob: URLs
+      // is unreliable, especially after an await -- its own confirmation
+      // sheet can appear and then produce nothing in Files, with no error
+      // surfaced to the page (tried and confirmed broken here, including
+      // with a deferred URL.revokeObjectURL). The Web Share API's file
+      // support is Apple's own recommended path for "save this generated
+      // file" and opens the native share sheet (Save Image / Save to
+      // Files), a genuinely different code path -- used whenever the
+      // browser supports it, with the anchor/blob approach kept as the
+      // fallback for browsers that don't (most desktop browsers still
+      // don't support sharing files via navigator.share).
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename });
+        } catch (shareErr) {
+          // The person closing the share sheet without picking anything
+          // throws AbortError -- that's a cancel, not a failure.
+          if (shareErr instanceof Error && shareErr.name !== 'AbortError') throw shareErr;
+        }
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
     } catch (err) {
       console.error('Poster export failed:', err);
       setError(t('poster.exportError'));
