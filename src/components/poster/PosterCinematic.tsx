@@ -1,12 +1,14 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
+import { pickHeroPhoto } from './pickHeroPhoto';
 import { useT } from '../../i18n/useT';
 
 /** One strong photo, edge-to-edge, with only a subtle gradient + small overlay caption at the bottom — the opposite extreme from the minimalist template's whitespace-and-frame approach. */
 export function PosterCinematic({ data, widthPx, heightPx }: PosterTemplateProps) {
   const t = useT();
   const s = scaleOf(widthPx);
+  const hero = pickHeroPhoto(data.galleryPhotos, 'expressive');
 
   return (
     <div
@@ -20,7 +22,7 @@ export function PosterCinematic({ data, widthPx, heightPx }: PosterTemplateProps
       }}
     >
       <img
-        src={data.heroPhoto.previewUrl}
+        src={hero.previewUrl}
         alt=""
         style={{
           position: 'absolute',
@@ -28,7 +30,7 @@ export function PosterCinematic({ data, widthPx, heightPx }: PosterTemplateProps
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          objectPosition: smartObjectPosition(data.heroPhoto),
+          objectPosition: smartObjectPosition(hero),
         }}
       />
       <div

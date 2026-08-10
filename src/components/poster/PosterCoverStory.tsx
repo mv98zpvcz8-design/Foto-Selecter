@@ -1,6 +1,7 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { smartObjectPosition } from './smartObjectPosition';
+import { pickHeroPhoto } from './pickHeroPhoto';
 import { useT } from '../../i18n/useT';
 
 /**
@@ -13,6 +14,7 @@ import { useT } from '../../i18n/useT';
 export function PosterCoverStory({ data, widthPx, heightPx }: PosterTemplateProps) {
   const t = useT();
   const s = scaleOf(widthPx);
+  const hero = pickHeroPhoto(data.galleryPhotos, 'expressive');
 
   return (
     <div
@@ -26,7 +28,7 @@ export function PosterCoverStory({ data, widthPx, heightPx }: PosterTemplateProp
       }}
     >
       <img
-        src={data.heroPhoto.previewUrl}
+        src={hero.previewUrl}
         alt=""
         style={{
           position: 'absolute',
@@ -34,7 +36,7 @@ export function PosterCoverStory({ data, widthPx, heightPx }: PosterTemplateProp
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          objectPosition: smartObjectPosition(data.heroPhoto),
+          objectPosition: smartObjectPosition(hero),
         }}
       />
 

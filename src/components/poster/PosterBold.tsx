@@ -1,6 +1,7 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { DuotoneImage } from './DuotoneImage';
+import { pickHeroPhoto } from './pickHeroPhoto';
 import { adjustSaturation, hexToRgb, mixRgb, toHex } from '../../lib/colorPalette';
 import { useT } from '../../i18n/useT';
 
@@ -14,13 +15,14 @@ import { useT } from '../../i18n/useT';
 export function PosterBold({ data, widthPx, heightPx }: PosterTemplateProps) {
   const t = useT();
   const s = scaleOf(widthPx);
+  const hero = pickHeroPhoto(data.galleryPhotos, 'expressive');
   // Derived from the hero photo's own average color, not the whole gallery's —
   // averaging several differently-lit photos together tends to cancel hue out
   // into gray, which would make the duotone weak precisely when it's most
   // visible (a single dominant photo). Saturation is boosted since a raw
   // photo average is usually too muddy to read as a deliberate color choice.
-  const heroRgb = data.heroPhoto.colorStats
-    ? { r: data.heroPhoto.colorStats.avgR, g: data.heroPhoto.colorStats.avgG, b: data.heroPhoto.colorStats.avgB }
+  const heroRgb = hero.colorStats
+    ? { r: hero.colorStats.avgR, g: hero.colorStats.avgG, b: hero.colorStats.avgB }
     : hexToRgb(data.palette.accent);
   const punchy = adjustSaturation(heroRgb, 1.7);
   const shadowColor = toHex(mixRgb(punchy, { r: 6, g: 6, b: 10 }, 0.82));
@@ -38,7 +40,7 @@ export function PosterBold({ data, widthPx, heightPx }: PosterTemplateProps) {
         fontFamily: '"Arial Narrow", "Helvetica Neue", Arial, sans-serif',
       }}
     >
-      <DuotoneImage photo={data.heroPhoto} shadowColor={shadowColor} highlightColor={highlightColor} />
+      <DuotoneImage photo={hero} shadowColor={shadowColor} highlightColor={highlightColor} maxDim={Math.round(widthPx * 1.3)} />
 
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: barWidth, background: toHex(punchy), zIndex: 3 }} />
 

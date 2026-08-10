@@ -1,6 +1,7 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
 import { DuotoneImage } from './DuotoneImage';
+import { pickHeroPhoto } from './pickHeroPhoto';
 import { adjustSaturation, hexToRgb, mixRgb, toHex } from '../../lib/colorPalette';
 
 /**
@@ -12,9 +13,10 @@ import { adjustSaturation, hexToRgb, mixRgb, toHex } from '../../lib/colorPalett
  */
 export function PosterGalleryPrint({ data, widthPx, heightPx }: PosterTemplateProps) {
   const s = scaleOf(widthPx);
+  const hero = pickHeroPhoto(data.galleryPhotos, 'calm');
 
-  const heroRgb = data.heroPhoto.colorStats
-    ? { r: data.heroPhoto.colorStats.avgR, g: data.heroPhoto.colorStats.avgG, b: data.heroPhoto.colorStats.avgB }
+  const heroRgb = hero.colorStats
+    ? { r: hero.colorStats.avgR, g: hero.colorStats.avgG, b: hero.colorStats.avgB }
     : hexToRgb(data.palette.accent);
   // A gentler mix than PosterBold's punchy sports-poster duotone -- a
   // gallery print reads as considered, not loud.
@@ -62,7 +64,7 @@ export function PosterGalleryPrint({ data, widthPx, heightPx }: PosterTemplatePr
           }}
         />
         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: shadowColor }}>
-          <DuotoneImage photo={data.heroPhoto} shadowColor={shadowColor} highlightColor={highlightColor} />
+          <DuotoneImage photo={hero} shadowColor={shadowColor} highlightColor={highlightColor} maxDim={Math.round(widthPx * 1.3)} />
         </div>
       </div>
 

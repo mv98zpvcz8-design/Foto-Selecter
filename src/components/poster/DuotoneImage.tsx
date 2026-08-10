@@ -22,8 +22,8 @@ function hexToRgb(hex: string): [number, number, number] {
  * shift) -- a simplification, not a downgrade; it's the same technique
  * most duotone print/poster tools use.
  */
-async function duotoneDataUrl(url: string, shadowColor: string, highlightColor: string): Promise<string> {
-  const key = `${url}:${shadowColor}:${highlightColor}`;
+async function duotoneDataUrl(url: string, shadowColor: string, highlightColor: string, maxDim: number): Promise<string> {
+  const key = `${url}:${shadowColor}:${highlightColor}:${maxDim}`;
   const cached = cache.get(key);
   if (cached) return cached;
 
@@ -34,12 +34,19 @@ async function duotoneDataUrl(url: string, shadowColor: string, highlightColor: 
     img.src = url;
   });
 
+  // Processing at the source photo's full native resolution (often 20+
+  // megapixels) can silently exceed iOS Safari's canvas memory/area limits
+  // -- getImageData/putImageData then produce nothing, with no error, which
+  // is exactly what caused the exported photo to be blank on a real device.
+  // Downscaling to what the template actually displays keeps this safely
+  // under that ceiling regardless of source resolution.
+  const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
   const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
+  canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('duotone: 2d context unavailable');
-  ctx.drawImage(img, 0, 0);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
   const [sr, sg, sb] = hexToRgb(shadowColor);
   const [hr, hg, hb] = hexToRgb(highlightColor);
@@ -76,10 +83,12 @@ interface DuotoneImageProps {
   shadowColor: string;
   /** Light end of the duotone gradient (usually the same hue, lightened). */
   highlightColor: string;
+  /** Longest side (in the same px units as the template's widthPx/heightPx) this image will ever actually display at -- the processing resolution, not a hard quality cap. */
+  maxDim: number;
 }
 
 /** Falls back to a plain grayscale crop (no blend mode, ever) while the duotone computes, so a poster exported mid-compute is merely uncolored, never blank. */
-export function DuotoneImage({ photo, shadowColor, highlightColor }: DuotoneImageProps) {
+export function DuotoneImage({ photo, shadowColor, highlightColor, maxDim }: DuotoneImageProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const requestRef = useRef(0);
   const previewUrl = photo.previewUrl;
@@ -88,14 +97,14 @@ export function DuotoneImage({ photo, shadowColor, highlightColor }: DuotoneImag
     if (!previewUrl) return;
     const requestId = ++requestRef.current;
     setDataUrl(null);
-    duotoneDataUrl(previewUrl, shadowColor, highlightColor)
+    duotoneDataUrl(previewUrl, shadowColor, highlightColor, maxDim)
       .then((url) => {
         if (requestRef.current === requestId) setDataUrl(url);
       })
       .catch(() => {
         // Leave dataUrl null -- the grayscale fallback below stays visible.
       });
-  }, [previewUrl, shadowColor, highlightColor]);
+  }, [previewUrl, shadowColor, highlightColor, maxDim]);
 
   const commonStyle: CSSProperties = {
     position: 'absolute',

@@ -1,10 +1,12 @@
 import type { PosterTemplateProps } from './posterTemplates';
 import { scaleOf } from './posterScale';
+import { pickHeroPhoto } from './pickHeroPhoto';
 
 /** One hero photo, generous whitespace, small centered caption block — the "gallery wall print" look. */
 export function PosterMinimalist({ data, widthPx, heightPx }: PosterTemplateProps) {
   const s = scaleOf(widthPx);
   const margin = 60 * s;
+  const hero = pickHeroPhoto(data.galleryPhotos, 'calm');
 
   return (
     <div
@@ -31,7 +33,7 @@ export function PosterMinimalist({ data, widthPx, heightPx }: PosterTemplateProp
         }}
       >
         <img
-          src={data.heroPhoto.previewUrl}
+          src={hero.previewUrl}
           alt=""
           style={{
             maxWidth: '100%',
