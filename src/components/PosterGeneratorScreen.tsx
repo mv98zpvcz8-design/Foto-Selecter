@@ -85,7 +85,14 @@ export function PosterGeneratorScreen({ onClose }: { onClose: () => void }) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      // iOS Safari shows its own "Do you want to download?" sheet and only
+      // fetches the blob: URL after the person taps Download in it -- which
+      // happens well after this function returns. Revoking synchronously
+      // here (as the various "correct" examples online do) invalidates the
+      // URL before Safari ever reads it, so the download silently fails
+      // with nothing landing in Files and no error reaching this page.
+      // Delaying the revoke gives that manual tap time to happen first.
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch (err) {
       console.error('Poster export failed:', err);
       setError(t('poster.exportError'));
