@@ -95,6 +95,7 @@ export interface PhotoResult {
   isSelected?: boolean; // user-controlled, defaults to isPreselected
 
   lightroomSuggestions?: LightroomSuggestion[];
+  lightroomAssetId?: string; // set only for photos imported from Lightroom -- lets picks be sent back into a new Lightroom album
 
   carouselPosition?: number; // 1-based; only set when the active style is Instagram
 

@@ -120,8 +120,17 @@ Auf ausdrücklichen Wunsch entsteht gerade eine direkte Adobe-Lightroom-Anbindun
 **Bisheriger Stand:**
 - ✅ OAuth-Login/Callback/Status/Logout (`api/auth/*`) — verifiziert per Unit-Tests für die Verschlüsselungslogik.
 - ✅ Alben auflisten, Fotos eines Albums seitenweise laden, Renditions (Thumbnail + 2048px) abrufen und in die bestehende Pipeline einspeisen (`api/lightroom/*`, `LightroomImportPanel.tsx`) — strukturell verifiziert (Type-Check, Build, Fehlerfälle ohne echte Adobe-Session getestet).
+- ✅ Auswahl zurück nach Lightroom senden als neues Album (siehe eigener Abschnitt unten) — strukturell verifiziert, noch nicht live gegen einen echten Account getestet.
 - ⏳ **Noch nicht live gegen einen echten Adobe-Account getestet** — die API-Pfade stammen aus Adobes eigenem, offiziellem Beispielcode, aber der erste echte Verbindungsversuch (OAuth-Redirect, Scopes, Rendition-Zugriff) steht noch aus.
-- Bewusst nicht eingebaut: Rückschreiben von Picks/Kategorien nach Lightroom, Download der Original-/RAW-Dateien (nur Vorschau-Renditions werden geladen).
+- Bewusst nicht eingebaut: Download der Original-/RAW-Dateien (nur Vorschau-Renditions werden geladen).
+
+### Auswahl zurück nach Lightroom senden
+
+Auf ausdrücklichen Wunsch lässt sich die aktuell ausgewählte Auswahl aus Foto-Selecter zurück in den Lightroom-Katalog schicken — sichtbar als eigener Abschnitt in der Ergebnisansicht, aber **nur wenn mindestens ein Foto der aktuellen Session tatsächlich aus Lightroom importiert wurde** (lokale Datei-Uploads haben keine Lightroom-Asset-ID und können nicht zurückgeschrieben werden; der Abschnitt bleibt dann unsichtbar).
+
+- **Neues Album statt Sterne-Bewertung**: bewusste Design-Entscheidung. Ein neues Album (Name frei wählbar, Vorschlag `Foto-Selecter Picks <Datum>`) mit den ausgewählten Fotos zu befüllen ist nicht-destruktiv und trivial rückgängig zu machen (Album löschen) — anders als bestehende Sterne-Bewertungen zu überschreiben, was ein eigenes, bereits genutztes System des Fotografen stillschweigend verändern und eine Score-zu-Sterne-Zuordnung erfordern würde, die leicht falsch geraten ist.
+- **Endpunkt**: `POST /api/lightroom/album-picks` — erstellt das Album (`POST /v2/catalogs/{catalogId}/albums`) und fügt jedes ausgewählte Foto hinzu (`PUT /v2/catalogs/{catalogId}/albums/{albumId}/assets/{assetId}`, mit Nebenläufigkeit begrenzt wie beim bestehenden Import). Nutzt dieselbe OAuth-Session und dasselbe Scope (`lr_partner_apis`) wie der bestehende Lese-Import — kein neuer Consent-Screen nötig.
+- ⏳ **Wie der Rest der Lightroom-Anbindung noch nicht live gegen einen echten Account getestet** — die Endpunkt-Formen sind aus denselben Adobe-Partner-API-Konventionen abgeleitet wie die bereits genutzten Lese-Endpunkte, aber diese konkreten Schreib-Aufrufe (Album erstellen, Asset hinzufügen) wurden noch nicht gegen die echte API ausprobiert.
 
 **Einrichtung (für eigenen Adobe-Zugang):**
 1. Eigene Adobe-ID + Projekt in der [Adobe Developer Console](https://console.adobe.io) anlegen, API "Lightroom Services" hinzufügen, Credential-Typ "Web App".

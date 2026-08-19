@@ -10,17 +10,31 @@ const LIGHTROOM_API_HOST = 'https://lr.adobe.io';
 // Adobe's own LrRequestor.mjs sample.
 const WHILE_1_PREFIX = /^while\s*\(\s*1\s*\)\s*\{\s*\}\s*/;
 
-function lightroomFetch(accessToken: string, apiKey: string, path: string): Promise<Response> {
+interface LightroomFetchOptions {
+  method?: 'GET' | 'POST' | 'PUT';
+  body?: unknown;
+}
+
+function lightroomFetch(accessToken: string, apiKey: string, path: string, options: LightroomFetchOptions = {}): Promise<Response> {
+  const headers: Record<string, string> = {
+    'X-API-Key': apiKey,
+    Authorization: `Bearer ${accessToken}`,
+  };
+  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   return fetch(`${LIGHTROOM_API_HOST}${path}`, {
-    headers: {
-      'X-API-Key': apiKey,
-      Authorization: `Bearer ${accessToken}`,
-    },
+    method: options.method ?? 'GET',
+    headers,
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
 }
 
-export async function lightroomJson<T>(accessToken: string, apiKey: string, path: string): Promise<T> {
-  const res = await lightroomFetch(accessToken, apiKey, path);
+export async function lightroomJson<T>(
+  accessToken: string,
+  apiKey: string,
+  path: string,
+  options: LightroomFetchOptions = {},
+): Promise<T> {
+  const res = await lightroomFetch(accessToken, apiKey, path, options);
   const text = await res.text();
   if (!res.ok) {
     throw new Error(`Lightroom API ${path} returned ${res.status}: ${text.slice(0, 500)}`);

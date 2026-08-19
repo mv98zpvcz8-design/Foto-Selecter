@@ -1754,3 +1754,29 @@ input, select {
   margin: 0 0 6px;
   font-size: 15px;
 }
+.lightroom-picks-section {
+  margin: 16px 0 24px;
+  padding: 16px 0;
+  border-top: 1px solid var(--separator);
+  border-bottom: 1px solid var(--separator);
+}
+.lightroom-picks-section h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.lightroom-picks-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lightroom-picks-name-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--separator);
+  background: var(--bg-secondary);
+  color: var(--label);
+  font-size: 14px;
+}

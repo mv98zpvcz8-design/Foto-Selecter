@@ -7,6 +7,7 @@ import { FilterPanel } from './FilterPanel';
 import { AnalyticsScreen } from './AnalyticsScreen';
 import { VirtualizedGrid } from './VirtualizedGrid';
 import { PosterGeneratorScreen } from './PosterGeneratorScreen';
+import { LightroomPicksPanel } from './LightroomPicksPanel';
 import { exportAsCsv, exportAsTxt } from '../lib/exportResults';
 import { resolveCustomPreset, resolveStyleHint } from '../lib/profiles';
 import { TIER_EDIT_THRESHOLD, TIER_POTENTIAL_THRESHOLD, tierForScore } from '../lib/scoring';
@@ -159,6 +160,8 @@ export function ResultsScreen() {
           </button>
         </div>
       </div>
+
+      <LightroomPicksPanel />
 
       {showAnalytics ? (
         <AnalyticsScreen photos={donePhotos} purpose={purpose} />

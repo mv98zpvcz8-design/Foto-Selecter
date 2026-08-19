@@ -121,6 +121,7 @@ export function LightroomImportPanel({ onClose }: { onClose: () => void }) {
     setError(null);
 
     const files: File[] = [];
+    const lightroomAssetIds: string[] = [];
     let cursorIndex = 0;
     let failed = 0;
 
@@ -135,6 +136,7 @@ export function LightroomImportPanel({ onClose }: { onClose: () => void }) {
           if (!res.ok) throw new Error(`rendition fetch failed: ${res.status}`);
           const blob = await res.blob();
           files.push(new File([blob], toJpegFileName(asset.fileName), { type: blob.type || 'image/jpeg' }));
+          lightroomAssetIds.push(asset.id);
         } catch {
           failed += 1;
         }
@@ -144,7 +146,7 @@ export function LightroomImportPanel({ onClose }: { onClose: () => void }) {
 
     await Promise.all(Array.from({ length: Math.min(IMPORT_CONCURRENCY, toImport.length) }, worker));
 
-    if (files.length > 0) dispatch({ type: 'ADD_FILES', files });
+    if (files.length > 0) dispatch({ type: 'ADD_FILES', files, lightroomAssetIds });
     setImportProgress(null);
     if (failed > 0) setError(t('lightroom.importPartialError', { count: failed }));
     else onClose();

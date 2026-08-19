@@ -59,12 +59,14 @@ function yieldToUi(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-export function createInitialPhotoResults(files: File[]): PhotoResult[] {
+/** `lightroomAssetIds`, when given, must be the same length/order as `files` -- entries only present for files that came from a Lightroom import, so picks can later be sent back to Lightroom via a new album. */
+export function createInitialPhotoResults(files: File[], lightroomAssetIds?: (string | undefined)[]): PhotoResult[] {
   return files.map((file, i) => ({
     id: `${i}-${file.name}-${file.size}`,
     file,
     name: file.name,
     status: 'pending',
+    lightroomAssetId: lightroomAssetIds?.[i],
   }));
 }
 

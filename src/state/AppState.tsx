@@ -51,7 +51,7 @@ interface AppState {
 }
 
 type Action =
-  | { type: 'ADD_FILES'; files: File[] }
+  | { type: 'ADD_FILES'; files: File[]; lightroomAssetIds?: (string | undefined)[] }
   | { type: 'REMOVE_FILE'; id: string }
   | { type: 'CLEAR_FILES' }
   | { type: 'SET_TARGET_COUNT'; count: number }
@@ -107,24 +107,27 @@ function revokePhotoUrls(photo: PhotoResult): void {
   if (photo.thumbnailUrl) URL.revokeObjectURL(photo.thumbnailUrl);
 }
 
-function reducer(state: AppState, action: Action): AppState {
+/** Exported for direct reducer-level unit testing (see AppState.test.ts) — everything else here stays provider-internal. */
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'ADD_FILES': {
       const accepted: File[] = [];
+      const acceptedLightroomAssetIds: (string | undefined)[] = [];
       const rejected: string[] = [];
       const existingKeys = new Set(state.photos.map((p) => `${p.name}-${p.file.size}`));
-      for (const file of action.files) {
+      action.files.forEach((file, i) => {
         const key = `${file.name}-${file.size}`;
         if (!isSupportedFile(file.name)) {
           rejected.push(file.name);
         } else if (!existingKeys.has(key)) {
           accepted.push(file);
+          acceptedLightroomAssetIds.push(action.lightroomAssetIds?.[i]);
           existingKeys.add(key);
         }
-      }
+      });
       return {
         ...state,
-        photos: [...state.photos, ...createInitialPhotoResults(accepted)],
+        photos: [...state.photos, ...createInitialPhotoResults(accepted, acceptedLightroomAssetIds)],
         rejectedFileNames: [...state.rejectedFileNames, ...rejected],
       };
     }

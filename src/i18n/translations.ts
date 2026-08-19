@@ -44,6 +44,16 @@ const de: Record<string, string> = {
   'lightroom.error': 'Lightroom-Anfrage fehlgeschlagen. Bitte erneut versuchen.',
   'lightroom.disconnect': 'Trennen',
   'lightroom.oauthError': 'Verbindung zu Adobe Lightroom fehlgeschlagen ({{code}}). Bitte erneut versuchen.',
+
+  'lightroomPicks.heading': 'Auswahl zurück nach Lightroom senden',
+  'lightroomPicks.disclosure':
+    'Erstellt ein neues Album in deinem Lightroom-Katalog und fügt die aktuell ausgewählten Fotos hinzu — deine bestehenden Sternebewertungen oder Alben werden dabei nicht verändert. Nur für Fotos verfügbar, die aus Lightroom importiert wurden.',
+  'lightroomPicks.send': '{{count}} Foto(s) senden',
+  'lightroomPicks.sending': 'Wird gesendet…',
+  'lightroomPicks.noneSelected': 'Keine der aus Lightroom importierten Fotos ist aktuell ausgewählt.',
+  'lightroomPicks.resultOk': 'Album erstellt — {{added}} Foto(s) hinzugefügt.',
+  'lightroomPicks.resultPartial': 'Album erstellt — {{added}} Foto(s) hinzugefügt, {{failed}} fehlgeschlagen.',
+  'lightroomPicks.error': 'Senden nach Lightroom fehlgeschlagen: {{message}}',
   'poster.canva.oauthError': 'Verbindung zu Canva fehlgeschlagen ({{code}}). Bitte erneut versuchen.',
   'upload.clearAnalysisCache': 'Analyse-Cache leeren',
   'upload.clearAnalysisCacheHint':
@@ -515,6 +525,17 @@ const en: Record<string, string> = {
   'lightroom.error': 'Lightroom request failed. Please try again.',
   'lightroom.disconnect': 'Disconnect',
   'lightroom.oauthError': 'Connecting to Adobe Lightroom failed ({{code}}). Please try again.',
+
+  'lightroomPicks.heading': 'Send picks back to Lightroom',
+  'lightroomPicks.disclosure':
+    "Creates a new album in your Lightroom catalog and adds the currently selected photos to it — your existing star ratings or albums are left untouched. Only available for photos that were imported from Lightroom.",
+  'lightroomPicks.send': 'Send {{count}} photo(s)',
+  'lightroomPicks.sending': 'Sending…',
+  'lightroomPicks.noneSelected': 'None of the photos imported from Lightroom are currently selected.',
+  'lightroomPicks.resultOk': 'Album created — {{added}} photo(s) added.',
+  'lightroomPicks.resultPartial': 'Album created — {{added}} photo(s) added, {{failed}} failed.',
+  'lightroomPicks.error': 'Sending to Lightroom failed: {{message}}',
+
   'poster.canva.oauthError': 'Connecting to Canva failed ({{code}}). Please try again.',
   'upload.clearAnalysisCache': 'Clear analysis cache',
   'upload.clearAnalysisCacheHint':
